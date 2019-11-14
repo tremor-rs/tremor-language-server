@@ -7,3 +7,16 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+# for use later
+#codespan = "0.5.0"
+#codespan-lsp = "0.5.0"
+
+# need old versions of these for compatibility with tower-lsp
+#futures = "0.3.1"
+#jsonrpc-core = "14.0"
+futures = "0.1.29"
+jsonrpc-core = "13.2"
+
+serde_json = "1.0.41"
+tokio = "0.1.22"
+tower-lsp = "0.4"

@@ -4,7 +4,7 @@ use serde_json::Value;
 use std::fs;
 use tower_lsp::lsp_types::*;
 use tower_lsp::{LanguageServer, LspService, Printer, Server};
-use tremor_script;
+use tremor_script::{pos, registry, script};
 
 #[derive(Debug, Default)]
 struct Backend;
@@ -12,19 +12,32 @@ struct Backend;
 impl Backend {
     fn run_checks(&self, text: &str) -> Vec<Diagnostic> {
         file_dbg("run_checks", text);
+
         let mut diagnostics = Vec::new();
-        // TODO add real tremor script errors as diagnostics
-        diagnostics.push(Diagnostic {
-            range: Range {
-                start: Position::new(0, 0),
-                end: Position::new(0, 0),
-            },
-            severity: None,
-            code: None,
-            source: None,
-            message: format!("{:?}", "testing testing"),
-            related_information: None,
-        });
+
+        // TODO add this a field in backend struct?
+        #[allow(unused_mut)]
+        let mut reg = registry::registry();
+
+        // TODO handle multiple errors?
+        if let Err(e) = script::Script::parse(text, &reg) {
+            let range = match e.context() {
+                (Some(pos::Range(start, end)), _) => Range {
+                    start: to_lsp_position(start),
+                    end: to_lsp_position(end),
+                },
+                _ => Range::default(),
+            };
+            diagnostics.push(Diagnostic {
+                range,
+                severity: None,
+                code: None,
+                source: None,
+                message: format!("{:?}", &e.to_string()),
+                related_information: None,
+            });
+        }
+
         diagnostics
     }
 }
@@ -110,6 +123,12 @@ impl LanguageServer for Backend {
         // TODO handle local state
         printer.publish_diagnostics(params.text_document.uri, vec![]);
     }
+}
+
+// TODO migrate to another module
+fn to_lsp_position(location: pos::Location) -> Position {
+    // lsp position is zero-based
+    Position::new((location.line - 1) as u64, (location.column - 1) as u64)
 }
 
 // TODO remove. just for test right now

@@ -4,6 +4,7 @@ use serde_json::Value;
 use std::fs;
 use tower_lsp::lsp_types::*;
 use tower_lsp::{LanguageServer, LspService, Printer, Server};
+use tremor_script;
 
 #[derive(Debug, Default)]
 struct Backend;

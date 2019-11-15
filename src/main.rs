@@ -16,10 +16,17 @@ impl LanguageServer for Backend {
     type HighlightFuture = BoxFuture<Option<Vec<DocumentHighlight>>>;
 
     fn initialize(&self, _: &Printer, _: InitializeParams) -> Result<InitializeResult> {
-        Ok(InitializeResult::default())
+        Ok(InitializeResult {
+            capabilities: ServerCapabilities {
+                hover_provider: Some(true),
+                ..ServerCapabilities::default()
+            },
+        })
     }
 
     fn initialized(&self, printer: &Printer, _: InitializedParams) {
+        // TODO see this from clients
+        //printer.show_message(MessageType::Info, "server initialized!");
         printer.log_message(MessageType::Info, "server initialized!");
     }
 
@@ -39,8 +46,16 @@ impl LanguageServer for Backend {
         Box::new(future::ok(None))
     }
 
-    fn hover(&self, _: TextDocumentPositionParams) -> Self::HoverFuture {
-        Box::new(future::ok(None))
+    fn hover(&self, params: TextDocumentPositionParams) -> Self::HoverFuture {
+        file_dbg("hover", "hover");
+        // TODO remove. just for test right now
+        let result = Hover {
+            contents: HoverContents::Scalar(MarkedString::String(
+                params.position.character.to_string(),
+            )),
+            range: None,
+        };
+        Box::new(future::ok(Some(result)))
     }
 
     fn document_highlight(&self, _: TextDocumentPositionParams) -> Self::HighlightFuture {
@@ -48,7 +63,20 @@ impl LanguageServer for Backend {
     }
 }
 
+// TODO remove. just for test right now
+fn file_dbg(name: &str, content: &str) {
+    use std::fs::File;
+    use std::io::Write;
+
+    let path = format!("/tmp/tremor/{}", name);
+
+    let mut output = File::create(path).unwrap();
+    write!(output, "{}", content);
+}
+
 fn main() {
+    file_dbg("init", "Hello world!");
+
     let stdin = tokio::io::stdin();
     let stdout = tokio::io::stdout();
 

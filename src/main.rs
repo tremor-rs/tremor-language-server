@@ -1,11 +1,32 @@
 use futures::future;
 use jsonrpc_core::{BoxFuture, Result};
 use serde_json::Value;
+use std::fs;
 use tower_lsp::lsp_types::*;
 use tower_lsp::{LanguageServer, LspService, Printer, Server};
 
 #[derive(Debug, Default)]
 struct Backend;
+
+impl Backend {
+    fn run_checks(&self, text: &str) -> Vec<Diagnostic> {
+        file_dbg("run_checks", text);
+        let mut diagnostics = Vec::new();
+        // TODO add real tremor script errors as diagnostics
+        diagnostics.push(Diagnostic {
+            range: Range {
+                start: Position::new(0, 0),
+                end: Position::new(0, 0),
+            },
+            severity: None,
+            code: None,
+            source: None,
+            message: format!("{:?}", "testing testing"),
+            related_information: None,
+        });
+        diagnostics
+    }
+}
 
 impl LanguageServer for Backend {
     type ShutdownFuture = BoxFuture<()>;
@@ -25,6 +46,7 @@ impl LanguageServer for Backend {
     }
 
     fn initialized(&self, printer: &Printer, _: InitializedParams) {
+        file_dbg("initialized", "initialized");
         // TODO see this from clients
         //printer.show_message(MessageType::Info, "server initialized!");
         printer.log_message(MessageType::Info, "server initialized!");
@@ -61,6 +83,32 @@ impl LanguageServer for Backend {
     fn document_highlight(&self, _: TextDocumentPositionParams) -> Self::HighlightFuture {
         Box::new(future::ok(None))
     }
+
+    fn did_open(&self, printer: &Printer, params: DidOpenTextDocumentParams) {
+        file_dbg("didOpen", "didOpen");
+        let uri = params.text_document.uri;
+        if let Ok(path) = uri.to_file_path() {
+            if let Ok(text) = fs::read_to_string(path) {
+                printer.publish_diagnostics(uri, self.run_checks(&text));
+            }
+        }
+    }
+
+    // TODO make this run
+    fn did_change(&self, printer: &Printer, params: DidChangeTextDocumentParams) {
+        file_dbg("didChange", "didChange");
+        printer.publish_diagnostics(
+            params.text_document.uri,
+            self.run_checks(&params.content_changes[0].text),
+        );
+    }
+
+    // TODO make this run
+    fn did_close(&self, printer: &Printer, params: DidCloseTextDocumentParams) {
+        file_dbg("didClose", "didClose");
+        // TODO handle local state
+        printer.publish_diagnostics(params.text_document.uri, vec![]);
+    }
 }
 
 // TODO remove. just for test right now
@@ -75,7 +123,7 @@ fn file_dbg(name: &str, content: &str) {
 }
 
 fn main() {
-    file_dbg("init", "Hello world!");
+    file_dbg("main", "Hello world!");
 
     let stdin = tokio::io::stdin();
     let stdout = tokio::io::stdout();

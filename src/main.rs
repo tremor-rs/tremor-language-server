@@ -22,7 +22,7 @@ impl Backend {
         // TODO handle multiple errors?
         if let Err(e) = script::Script::parse(text, &reg) {
             let range = match e.context() {
-                (Some(pos::Range(start, end)), _) => Range {
+                (_, Some(pos::Range(start, end))) => Range {
                     start: to_lsp_position(start),
                     end: to_lsp_position(end),
                 },

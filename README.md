@@ -36,13 +36,14 @@ rename all references
 
 ```sh
 cd ~/repos # should be the same folder that holds the main tremor-runtime repo
-git clone <repo_url>
+git clone git@github.csnzoo.com:adhamala/tremor-language-server.git
 cd tremor-language-server
 
 # during development
-cargo build && ln -s target/debug/tremor-language-server ~/bin/ # or anywhere in your $PATH
+cargo build
+ln -s target/debug/tremor-language-server ~/bin/ # or anywhere in your $PATH
 
-# or via cargo install (uses release profile for the build)
+# or install the release build
 cargo install --path . --root ~/ # make sure ~/bin/ is in your $PATH
 ```
 
@@ -136,7 +137,8 @@ let g:ale_sign_warning = '▲▲'
 let g:ale_sign_error = '✗✗'
 ```
 
-For more ale setup and vim configuration, see:
+For more ale setup and vim configuration:
+
 https://github.com/anupdhml/dotfiles/blob/virtualbox_new/data/.vimrc
 
 If you prefer not to use ale, these vim plugins should also work well as the server client:

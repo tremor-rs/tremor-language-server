@@ -57,8 +57,39 @@ impl LanguageServer for Backend {
     fn initialize(&self, _: &Printer, _: InitializeParams) -> Result<InitializeResult> {
         Ok(InitializeResult {
             capabilities: ServerCapabilities {
+                code_action_provider: None,
+                code_lens_provider: None, /*Some(CodeLensOptions {
+                                              resolve_provider: None,
+                                          }),*/
+                color_provider: None,
+                completion_provider: None,
+                definition_provider: None,
+                document_formatting_provider: None,
+                document_highlight_provider: None,
+                document_link_provider: None,
+                document_on_type_formatting_provider: None,
+                document_range_formatting_provider: None,
+                document_symbol_provider: None,
+                execute_command_provider: None,
+                folding_range_provider: None,
                 hover_provider: Some(true),
-                ..ServerCapabilities::default()
+                implementation_provider: None,
+                references_provider: None,
+                rename_provider: None,
+                signature_help_provider: None,
+                text_document_sync: Some(TextDocumentSyncCapability::Kind(
+                    TextDocumentSyncKind::Full,
+                )),
+                type_definition_provider: None,
+                workspace_symbol_provider: None,
+                workspace: Some(WorkspaceCapability {
+                    workspace_folders: Some(WorkspaceFolderCapability {
+                        supported: Some(true),
+                        change_notifications: Some(
+                            WorkspaceFolderCapabilityChangeNotifications::Bool(true),
+                        ),
+                    }),
+                }),
             },
         })
     }
@@ -71,18 +102,23 @@ impl LanguageServer for Backend {
     }
 
     fn shutdown(&self) -> Self::ShutdownFuture {
+        file_dbg("shutdown", "shutdown");
         Box::new(future::ok(()))
     }
 
     fn symbol(&self, _: WorkspaceSymbolParams) -> Self::SymbolFuture {
+        file_dbg("symbol", "symbol");
         Box::new(future::ok(None))
     }
 
-    fn execute_command(&self, _: &Printer, _: ExecuteCommandParams) -> Self::ExecuteFuture {
+    fn execute_command(&self, printer: &Printer, _: ExecuteCommandParams) -> Self::ExecuteFuture {
+        file_dbg("execute", "execute");
+        printer.log_message(MessageType::Info, "executing command!");
         Box::new(future::ok(None))
     }
 
     fn completion(&self, _: CompletionParams) -> Self::CompletionFuture {
+        file_dbg("completion", "completion");
         Box::new(future::ok(None))
     }
 

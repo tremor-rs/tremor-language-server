@@ -76,6 +76,7 @@ let g:ale_linters_explicit = 1
 " active linters
 let g:ale_linters = {
 \   'tremor': ['tremor-language-server'],
+\   'trickle': ['tremor-language-server'],
 \}
 
 " when to run linting/fixing. choose as desired
@@ -151,7 +152,7 @@ If you prefer not to use ale, these vim plugins should also work well as the ser
 
 * completion for module functions
 * integration for vscode, emacs
-* support trickle
+* support parallel edits for trickle and tremor files
 * improve debugging
 * ability to handle multiple script errors
 * use simd-json in tower and json rpc crates?

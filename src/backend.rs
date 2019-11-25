@@ -4,12 +4,24 @@ use serde_json::Value;
 use std::fs;
 use tower_lsp::lsp_types::*;
 use tower_lsp::{LanguageServer, Printer};
-use tremor_script::{pos, registry, script};
+use tremor_script::{pos, query, registry, script};
 
-#[derive(Debug, Default)]
-pub struct Backend;
+#[derive(Debug)]
+pub enum Language {
+    TremorScript,
+    TremorQuery,
+}
+
+#[derive(Debug)]
+pub struct Backend {
+    language: Language,
+}
 
 impl Backend {
+    pub fn new(language: Language) -> Self {
+        Self { language }
+    }
+
     fn run_checks(&self, text: &str) -> Vec<Diagnostic> {
         file_dbg("run_checks", text);
 
@@ -19,7 +31,15 @@ impl Backend {
         #[allow(unused_mut)]
         let mut reg = registry::registry();
 
-        if let Err(e) = script::Script::parse(text, &reg) {
+        let aggr_reg = registry::aggr();
+
+        // TODO handle this better, during backend initialization
+        let parse_error = match self.language {
+            Language::TremorScript => script::Script::parse(text, &reg).err(),
+            Language::TremorQuery => query::Query::parse(text, &reg, &aggr_reg).err(),
+        };
+
+        if let Some(e) = parse_error {
             let range = match e.context() {
                 (_, Some(pos::Range(start, end))) => Range {
                     start: Self::to_lsp_position(start),
@@ -164,7 +184,7 @@ impl LanguageServer for Backend {
 }
 
 // TODO remove. just for test right now
-fn file_dbg(name: &str, content: &str) {
+pub fn file_dbg(name: &str, content: &str) {
     use std::fs::File;
     use std::io::Write;
 

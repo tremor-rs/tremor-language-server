@@ -47,6 +47,12 @@ ln -s target/debug/tremor-language-server ~/bin/ # or anywhere in your $PATH
 cargo install --path . --root ~/ # make sure ~/bin/ is in your $PATH
 ```
 
+### VS Code setup
+
+Follow instructions at:
+
+https://github.com/wayfair-incubator/tremor-vscode
+
 ### Vim setup
 
 For use with vim, we have a forked version of [ale](https://github.com/dense-analysis/ale) that can interact with the tremor language server:
@@ -151,7 +157,7 @@ If you prefer not to use ale, these vim plugins should also work well as the ser
 ## TODO
 
 * completion for module functions
-* integration for vscode, emacs
+* integration for emacs
 * support parallel edits for trickle and tremor files
 * improve debugging
 * ability to handle multiple script errors

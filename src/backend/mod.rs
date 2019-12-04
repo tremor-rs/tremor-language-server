@@ -4,46 +4,27 @@ use serde_json::Value;
 use std::fs;
 use tower_lsp::lsp_types::*;
 use tower_lsp::{LanguageServer, Printer};
-use tremor_script::{pos, query, registry, script};
+use tremor_script::{errors, pos};
 
-#[derive(Debug)]
-pub enum Language {
-    TremorScript,
-    TremorQuery,
-}
+mod tremor; // tremor-script
+mod trickle; // tremor-query
 
-#[derive(Debug)]
-pub struct Backend {
-    language: Language,
-}
+pub use tremor::TremorScript;
+pub use trickle::TremorQuery;
 
-impl Backend {
-    pub fn new(language: Language) -> Self {
-        Self { language }
-    }
+pub trait Backend: Send + Sync {
+    fn parse_err(&self, text: &str) -> Option<errors::Error>;
 
-    fn run_checks(&self, text: &str) -> Vec<Diagnostic> {
-        file_dbg("run_checks", text);
+    fn get_diagnostics(&self, text: &str) -> Vec<Diagnostic> {
+        file_dbg("get_diagnostics", text);
 
         let mut diagnostics = Vec::new();
 
-        // TODO add this a field in backend struct?
-        #[allow(unused_mut)]
-        let mut reg = registry::registry();
-
-        let aggr_reg = registry::aggr();
-
-        // TODO handle this better, during backend initialization
-        let parse_error = match self.language {
-            Language::TremorScript => script::Script::parse(text, &reg).err(),
-            Language::TremorQuery => query::Query::parse(text, &reg, &aggr_reg).err(),
-        };
-
-        if let Some(e) = parse_error {
+        if let Some(e) = self.parse_err(text) {
             let range = match e.context() {
                 (_, Some(pos::Range(start, end))) => Range {
-                    start: Self::to_lsp_position(start),
-                    end: Self::to_lsp_position(end),
+                    start: self.to_lsp_position(start),
+                    end: self.to_lsp_position(end),
                 },
                 _ => Range::default(),
             };
@@ -60,13 +41,13 @@ impl Backend {
         diagnostics
     }
 
-    fn to_lsp_position(location: pos::Location) -> Position {
+    fn to_lsp_position(&self, location: pos::Location) -> Position {
         // position in language server protocol is zero-based
         Position::new((location.line - 1) as u64, (location.column - 1) as u64)
     }
 }
 
-impl LanguageServer for Backend {
+impl LanguageServer for dyn Backend {
     type ShutdownFuture = BoxFuture<()>;
     type SymbolFuture = BoxFuture<Option<Vec<SymbolInformation>>>;
     type ExecuteFuture = BoxFuture<Option<Value>>;
@@ -163,7 +144,7 @@ impl LanguageServer for Backend {
         let uri = params.text_document.uri;
         if let Ok(path) = uri.to_file_path() {
             if let Ok(text) = fs::read_to_string(path) {
-                printer.publish_diagnostics(uri, self.run_checks(&text));
+                printer.publish_diagnostics(uri, self.get_diagnostics(&text));
             }
         }
     }
@@ -172,7 +153,7 @@ impl LanguageServer for Backend {
         file_dbg("didChange", "didChange");
         printer.publish_diagnostics(
             params.text_document.uri,
-            self.run_checks(&params.content_changes[0].text),
+            self.get_diagnostics(&params.content_changes[0].text),
         );
     }
 

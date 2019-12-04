@@ -1,6 +1,6 @@
 mod backend;
 
-use crate::backend::{Backend, Language};
+use crate::backend::{Backend, TremorQuery, TremorScript};
 use clap::{App, Arg};
 use tower_lsp::{LspService, Server};
 
@@ -17,16 +17,16 @@ fn main() {
         )
         .get_matches();
 
-    let tremor_lang = if matches.is_present("trickle") {
-        Language::TremorQuery
+    let backend: Box<dyn Backend> = if matches.is_present("trickle") {
+        Box::new(TremorQuery::default())
     } else {
-        Language::TremorScript
+        Box::new(TremorScript::default())
     };
 
     let stdin = tokio::io::stdin();
     let stdout = tokio::io::stdout();
 
-    let (service, messages) = LspService::new(Backend::new(tremor_lang));
+    let (service, messages) = LspService::new(backend);
     let handle = service.close_handle();
     let server = Server::new(stdin, stdout)
         .interleave(messages)

@@ -33,12 +33,19 @@ pub trait Backend: Send + Sync {
                 },
                 _ => Range::default(),
             };
+
+            let mut message = e.to_string();
+            if let Some(hint) = e.hint() {
+                // comma here splits the message into multiple lines
+                message = format!("{}, Note: {}", message, hint);
+            }
+
             diagnostics.push(Diagnostic {
                 range,
-                severity: None,
+                message,
+                severity: Some(DiagnosticSeverity::Error),
+                source: Some("tremor-language-server".to_string()),
                 code: None,
-                source: None,
-                message: format!("{:?}", &e.to_string()),
                 related_information: None,
             });
         }

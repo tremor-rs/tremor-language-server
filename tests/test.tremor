@@ -1,4 +1,4 @@
-let a = random::integer(0, 100); # one of 0-99
+let a = rando::integer(0, 100); # one of 0-99
 emit a;
 
 emit 42 >> 64;

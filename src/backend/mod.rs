@@ -9,8 +9,13 @@ use tremor_script::{errors, pos};
 mod tremor; // tremor-script
 mod trickle; // tremor-query
 
-pub use tremor::TremorScript;
-pub use trickle::TremorQuery;
+pub fn lookup(name: &str) -> Option<Box<dyn Backend>> {
+    match name {
+        "tremor" => Some(Box::new(tremor::TremorScript::default())),
+        "trickle" => Some(Box::new(trickle::TremorQuery::default())),
+        _ => None,
+    }
+}
 
 pub trait Backend: Send + Sync {
     fn parse_err(&self, text: &str) -> Option<errors::Error>;

@@ -1,6 +1,5 @@
 mod backend;
 
-use crate::backend::{Backend, TremorQuery, TremorScript};
 use clap::{App, Arg};
 use tower_lsp::{LspService, Server};
 
@@ -9,28 +8,33 @@ fn main() {
         .version("0.1.0")
         .about("Tremor language server")
         .arg(
-            Arg::with_name("trickle")
-                .help("Support tremor query language instead of tremor script")
-                // TODO support for long options with flags? or just make this an arg
-                .short("q")
-                .takes_value(false),
+            Arg::with_name("backend")
+                .help("Language backend to use")
+                .short("b")
+                .long("backend")
+                .takes_value(true),
         )
         .get_matches();
 
-    let backend: Box<dyn Backend> = if matches.is_present("trickle") {
-        Box::new(TremorQuery::default())
-    } else {
-        Box::new(TremorScript::default())
-    };
+    // defaults to supporting tremor file type (i.e. tremor-script)
+    let backend_name = matches.value_of("backend").unwrap_or("tremor");
 
-    let stdin = tokio::io::stdin();
-    let stdout = tokio::io::stdout();
+    match backend::lookup(backend_name) {
+        Some(backend) => {
+            let stdin = tokio::io::stdin();
+            let stdout = tokio::io::stdout();
 
-    let (service, messages) = LspService::new(backend);
-    let handle = service.close_handle();
-    let server = Server::new(stdin, stdout)
-        .interleave(messages)
-        .serve(service);
+            let (service, messages) = LspService::new(backend);
+            let handle = service.close_handle();
+            let server = Server::new(stdin, stdout)
+                .interleave(messages)
+                .serve(service);
 
-    tokio::run(handle.run_until_exit(server));
+            tokio::run(handle.run_until_exit(server));
+        }
+        None => {
+            eprintln!("Error: unknown backend {}", backend_name);
+            std::process::exit(1)
+        }
+    }
 }

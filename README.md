@@ -160,6 +160,7 @@ If you prefer not to use ale, these vim plugins should also work well as the ser
 * integration for emacs
 * support parallel edits for trickle and tremor files
 * improve debugging
+* add tests
 * ability to handle multiple script errors
 * use simd-json in tower and json rpc crates?
 * distribution without compiling

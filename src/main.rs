@@ -5,7 +5,7 @@ use tower_lsp::{LspService, Server};
 
 fn main() {
     let matches = App::new("tremor-language-server")
-        .version("0.1.0")
+        .version(env!("CARGO_PKG_VERSION"))
         .about("Tremor language server")
         .arg(
             Arg::with_name("backend")

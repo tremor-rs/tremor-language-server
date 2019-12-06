@@ -1,7 +1,9 @@
 use futures::future;
+use halfbrown::HashMap;
 use jsonrpc_core::{BoxFuture, Result};
 use serde_json::Value;
 use std::fs;
+use std::sync::Mutex;
 use tower_lsp::lsp_types::*;
 use tower_lsp::{LanguageServer, Printer};
 use tremor_script::{errors, pos};
@@ -9,7 +11,15 @@ use tremor_script::{errors, pos};
 mod tremor; // tremor-script
 mod trickle; // tremor-query
 
-pub fn lookup(name: &str) -> Option<Box<dyn Backend>> {
+// TODO move this to a separate file
+pub trait Language: Send + Sync {
+    fn parse_err(&self, text: &str) -> Option<errors::Error>;
+
+    fn functions(&self, _module_name: &str) -> Vec<String> {
+        vec![]
+    }
+}
+pub fn lookup(name: &str) -> Option<Box<dyn Language>> {
     match name {
         "tremor" => Some(Box::new(tremor::TremorScript::default())),
         "trickle" => Some(Box::new(trickle::TremorQuery::default())),
@@ -17,15 +27,44 @@ pub fn lookup(name: &str) -> Option<Box<dyn Backend>> {
     }
 }
 
-pub trait Backend: Send + Sync {
-    fn parse_err(&self, text: &str) -> Option<errors::Error>;
+#[derive(Debug, Default)]
+pub struct DocumentState {
+    text: String,
+    // TODO more fields here based on ast
+}
+pub type State = HashMap<Url, DocumentState>;
+
+pub struct Backend {
+    language: Box<dyn Language>,
+    state: Mutex<State>,
+}
+
+impl Backend {
+    pub fn new(language: Box<dyn Language>) -> Self {
+        Self {
+            language,
+            state: Mutex::new(State::new()),
+        }
+    }
+
+    fn update(&self, uri: Url, text: &str) {
+        // TODO implement update as well. also remove unwrap
+        self.state.lock().unwrap().insert(
+            uri,
+            DocumentState {
+                text: text.to_string(),
+            },
+        );
+    }
+
+    // LSP helper functions
 
     fn get_diagnostics(&self, text: &str) -> Vec<Diagnostic> {
         file_dbg("get_diagnostics", text);
 
         let mut diagnostics = Vec::new();
 
-        if let Some(e) = self.parse_err(text) {
+        if let Some(e) = self.language.parse_err(text) {
             let range = match e.context() {
                 (_, Some(pos::Range(start, end))) => Range {
                     start: self.to_lsp_position(start),
@@ -53,13 +92,67 @@ pub trait Backend: Send + Sync {
         diagnostics
     }
 
+    fn get_completions(&self, text: &str, position: Position) -> Vec<CompletionItem> {
+        file_dbg("get_completions_text", text);
+        file_dbg(
+            "get_completions_position",
+            &format!("{}:{}", position.line, position.character),
+        );
+
+        if let Some(partial_line) = self.get_partial_line(text, position) {
+            file_dbg("get_completions_partial_line", &partial_line);
+
+            if partial_line.ends_with("::") {
+                // TODO more efficient. also save as constant and take len
+                if let Some(module_name) = &partial_line[..partial_line.len() - 2]
+                    .split_ascii_whitespace()
+                    .last()
+                {
+                    file_dbg("get_completions_module_name", module_name);
+
+                    return self
+                        .language
+                        .functions(module_name)
+                        .iter()
+                        .map(|func| {
+                            //let insert_text = format!("{}($1)", func);
+                            let insert_text = format!("{}()", func);
+                            CompletionItem {
+                                label: func.to_string(),
+                                kind: Some(CompletionItemKind::Function),
+                                insert_text: Some(insert_text),
+                                insert_text_format: Some(InsertTextFormat::Snippet),
+                                ..CompletionItem::default()
+                            }
+                        })
+                        .collect();
+                }
+            }
+        }
+
+        vec![]
+    }
+
+    // utility functions
+    // TODO move to utils module?
+
     fn to_lsp_position(&self, location: pos::Location) -> Position {
         // position in language server protocol is zero-based
         Position::new((location.line - 1) as u64, (location.column - 1) as u64)
     }
+
+    fn get_partial_line(&self, text: &str, position: Position) -> Option<String> {
+        let lines: Vec<&str> = text.split("\n").collect();
+        if let Some(line) = lines.get(position.line as usize) {
+            // TODO index check here
+            Some((&line[..position.character as usize]).to_string())
+        } else {
+            None
+        }
+    }
 }
 
-impl LanguageServer for dyn Backend {
+impl LanguageServer for Backend {
     type ShutdownFuture = BoxFuture<()>;
     type SymbolFuture = BoxFuture<Option<Vec<SymbolInformation>>>;
     type ExecuteFuture = BoxFuture<Option<Value>>;
@@ -75,7 +168,10 @@ impl LanguageServer for dyn Backend {
                                               resolve_provider: None,
                                           }),*/
                 color_provider: None,
-                completion_provider: None,
+                completion_provider: Some(CompletionOptions {
+                    resolve_provider: None,
+                    trigger_characters: Some(vec!["::".to_string()]),
+                }),
                 definition_provider: None,
                 document_formatting_provider: None,
                 document_highlight_provider: None,
@@ -114,25 +210,44 @@ impl LanguageServer for dyn Backend {
         printer.log_message(MessageType::Info, "server initialized!");
     }
 
+    // TODO do we need this?
     fn shutdown(&self) -> Self::ShutdownFuture {
         file_dbg("shutdown", "shutdown");
         Box::new(future::ok(()))
     }
 
+    // TODO do we need this?
     fn symbol(&self, _: WorkspaceSymbolParams) -> Self::SymbolFuture {
         file_dbg("symbol", "symbol");
         Box::new(future::ok(None))
     }
 
+    // TODO do we need this?
     fn execute_command(&self, printer: &Printer, _: ExecuteCommandParams) -> Self::ExecuteFuture {
         file_dbg("execute", "execute");
         printer.log_message(MessageType::Info, "executing command!");
         Box::new(future::ok(None))
     }
 
-    fn completion(&self, _: CompletionParams) -> Self::CompletionFuture {
+    fn completion(&self, params: CompletionParams) -> Self::CompletionFuture {
         file_dbg("completion", "completion");
-        Box::new(future::ok(None))
+        // TODO remove unwraps
+        let state = self.state.lock().unwrap();
+        let doc = state
+            .get(&params.text_document_position.text_document.uri)
+            .unwrap();
+
+        Box::new(future::ok(Some(CompletionResponse::Array(
+            self.get_completions(&doc.text, params.text_document_position.position),
+        ))))
+
+        //if let Ok(doc) = state.get(&params.text_document_position.text_document.uri) {
+        //    return Box::new(future::ok(Some(CompletionResponse::Array(
+        //        self.get_completions(&doc.text, params.text_document_position.position),
+        //    ))));
+        //}
+
+        //Box::new(future::ok(None))
     }
 
     fn hover(&self, params: TextDocumentPositionParams) -> Self::HoverFuture {
@@ -147,7 +262,9 @@ impl LanguageServer for dyn Backend {
         Box::new(future::ok(Some(result)))
     }
 
+    // TODO do we need this?
     fn document_highlight(&self, _: TextDocumentPositionParams) -> Self::HighlightFuture {
+        file_dbg("document_highlight", "document_highlight");
         Box::new(future::ok(None))
     }
 
@@ -155,7 +272,10 @@ impl LanguageServer for dyn Backend {
         file_dbg("didOpen", "didOpen");
         let uri = params.text_document.uri;
         if let Ok(path) = uri.to_file_path() {
+            // TODO pull this from params.text_document.text
+            // TODO cleanup
             if let Ok(text) = fs::read_to_string(path) {
+                self.update(uri.clone(), &text);
                 printer.publish_diagnostics(uri, self.get_diagnostics(&text));
             }
         }
@@ -163,10 +283,11 @@ impl LanguageServer for dyn Backend {
 
     fn did_change(&self, printer: &Printer, params: DidChangeTextDocumentParams) {
         file_dbg("didChange", "didChange");
-        printer.publish_diagnostics(
-            params.text_document.uri,
-            self.get_diagnostics(&params.content_changes[0].text),
-        );
+        // TODO cleanup
+        let uri = params.text_document.uri;
+        let text = &params.content_changes[0].text;
+        self.update(uri.clone(), text);
+        printer.publish_diagnostics(uri, self.get_diagnostics(text));
     }
 
     // TODO make this run and handle local state here

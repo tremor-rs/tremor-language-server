@@ -1,4 +1,4 @@
-use super::Backend;
+use super::Language;
 use tremor_script::{errors, registry, script};
 
 #[derive(Debug)]
@@ -14,8 +14,16 @@ impl Default for TremorScript {
     }
 }
 
-impl Backend for TremorScript {
+impl Language for TremorScript {
     fn parse_err(&self, text: &str) -> Option<errors::Error> {
         script::Script::parse(text, &self.registry).err()
+    }
+
+    fn functions(&self, module_name: &str) -> Vec<String> {
+        if let Some(module) = self.registry.functions.get(module_name) {
+            module.keys().cloned().collect()
+        } else {
+            vec![]
+        }
     }
 }

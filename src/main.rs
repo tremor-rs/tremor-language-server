@@ -1,5 +1,6 @@
 mod backend;
 
+use backend::Backend;
 use clap::{App, Arg};
 use tower_lsp::{LspService, Server};
 
@@ -17,14 +18,15 @@ fn main() {
         .get_matches();
 
     // defaults to supporting tremor file type (i.e. tremor-script)
-    let backend_name = matches.value_of("backend").unwrap_or("tremor");
+    let language_name = matches.value_of("backend").unwrap_or("tremor");
 
-    match backend::lookup(backend_name) {
-        Some(backend) => {
+    // TODO rename this to language module
+    match backend::lookup(language_name) {
+        Some(language) => {
             let stdin = tokio::io::stdin();
             let stdout = tokio::io::stdout();
 
-            let (service, messages) = LspService::new(backend);
+            let (service, messages) = LspService::new(Backend::new(language));
             let handle = service.close_handle();
             let server = Server::new(stdin, stdout)
                 .interleave(messages)
@@ -33,7 +35,7 @@ fn main() {
             tokio::run(handle.run_until_exit(server));
         }
         None => {
-            eprintln!("Error: unknown backend {}", backend_name);
+            eprintln!("Error: unknown backend {}", language_name);
             std::process::exit(1)
         }
     }

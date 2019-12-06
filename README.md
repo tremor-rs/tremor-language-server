@@ -156,11 +156,11 @@ If you prefer not to use ale, these vim plugins should also work well as the ser
 
 ## TODO
 
-* completion for module functions
 * integration for emacs
 * support parallel edits for trickle and tremor files
 * improve debugging
 * add tests
+* function signature info for completion as well as hover
 * ability to handle multiple script errors
 * use simd-json in tower and json rpc crates?
 * distribution without compiling

@@ -1,4 +1,6 @@
-let a = rando::integer(0, 100); # one of 0-99
-emit a;
+let a = random::integer(0, 100); # one of 0-99
+#emit a;
 
-emit 42 >> 64;
+let b = origin::
+
+emit 42 >> 63;

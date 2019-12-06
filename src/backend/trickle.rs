@@ -1,4 +1,4 @@
-use super::Backend;
+use super::Language;
 use tremor_script::{errors, query, registry};
 
 #[derive(Debug)]
@@ -16,7 +16,7 @@ impl Default for TremorQuery {
     }
 }
 
-impl Backend for TremorQuery {
+impl Language for TremorQuery {
     fn parse_err(&self, text: &str) -> Option<errors::Error> {
         query::Query::parse(text, &self.registry, &self.aggr_registry).err()
     }

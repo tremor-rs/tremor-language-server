@@ -29,14 +29,15 @@ fn main() {
                 .help("Tremor language to support")
                 .short("l")
                 .long("language")
-                .takes_value(true),
+                .takes_value(true)
+                .possible_values(language::NAMES),
         )
         .get_matches();
 
     // if not set, defaults to supporting tremor-script
     let language_name = matches
         .value_of("language")
-        .unwrap_or(language::TREMOR_SCRIPT);
+        .unwrap_or(language::DEFAULT_NAME);
 
     match language::lookup(language_name) {
         Some(language) => {

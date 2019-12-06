@@ -15,6 +15,9 @@
 use crate::language::prelude::*;
 use tremor_script::query::Query;
 
+pub const TREMOR_QUERY: &str = "tremor-query";
+pub const TREMOR_QUERY_FILE_EXT: &str = "trickle";
+
 #[derive(Debug)]
 pub struct TremorQuery {
     registry: registry::Registry,

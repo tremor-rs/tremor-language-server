@@ -18,13 +18,15 @@ mod script;
 
 pub use tremor_script::pos;
 
-// language names
-pub const TREMOR_SCRIPT: &str = "tremor-script";
-pub const TREMOR_QUERY: &str = "tremor-query";
+pub const NAMES: &[&str] = &[
+    script::TREMOR_SCRIPT,
+    query::TREMOR_QUERY,
+    // alternate names for above
+    script::TREMOR_SCRIPT_FILE_EXT,
+    query::TREMOR_QUERY_FILE_EXT,
+];
 
-// file extensions
-pub const TREMOR_SCRIPT_FILE_EXT: &str = "tremor";
-pub const TREMOR_QUERY_FILE_EXT: &str = "trickle";
+pub const DEFAULT_NAME: &str = script::TREMOR_SCRIPT;
 
 pub trait Language: Send + Sync {
     fn parse_err(&self, text: &str) -> Option<prelude::Error>;
@@ -36,8 +38,12 @@ pub trait Language: Send + Sync {
 
 pub fn lookup(name: &str) -> Option<Box<dyn Language>> {
     match name {
-        TREMOR_SCRIPT | TREMOR_SCRIPT_FILE_EXT => Some(Box::new(script::TremorScript::default())),
-        TREMOR_QUERY | TREMOR_QUERY_FILE_EXT => Some(Box::new(query::TremorQuery::default())),
+        script::TREMOR_SCRIPT | script::TREMOR_SCRIPT_FILE_EXT => {
+            Some(Box::new(script::TremorScript::default()))
+        }
+        query::TREMOR_QUERY | query::TREMOR_QUERY_FILE_EXT => {
+            Some(Box::new(query::TremorQuery::default()))
+        }
         _ => None,
     }
 }

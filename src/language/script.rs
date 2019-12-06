@@ -15,6 +15,9 @@
 use crate::language::prelude::*;
 use tremor_script::script::Script;
 
+pub const TREMOR_SCRIPT: &str = "tremor-script";
+pub const TREMOR_SCRIPT_FILE_EXT: &str = "tremor";
+
 #[derive(Debug)]
 pub struct TremorScript {
     registry: registry::Registry,

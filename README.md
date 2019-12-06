@@ -1,4 +1,4 @@
-# Tremor Language Server
+# Tremor Language Server (Trill)
 
 WIP server for use with editors and IDEs, when working with tremor's languages. Follows [language server protocol](https://microsoft.github.io/language-server-protocol/).
 

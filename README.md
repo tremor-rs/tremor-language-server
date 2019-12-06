@@ -7,13 +7,15 @@ WIP server for use with editors and IDEs, when working with tremor's languages. 
 
 #### Diagnostics
 
-tremor-script interpreter errors (as you type/file save)
+tremor-script interpreter errors (as you type or on file save), with hints for fixing (as applicable)
 
-nice-to-have: error line squiggles (for GUI editors), apply suggestions from errors
+nice-to-have: apply fix suggestions from errors
 
 #### Completion
 
-code completion (as you type/on-demand) for variables in the tremor script file as well as module functions
+code completion (as you type/on-demand) for module functions
+
+nice-to-have: code completion for variables as well as other language constructs
 
 #### Hover
 
@@ -23,20 +25,20 @@ nice-to-have: type info/documentation for references (where applicable)
 
 #### Navigation
 
-find all references, symbol search
+nice-to-have: find all references, symbol search
 
 for later: Go to definiton, peek definition, symbol list (when tremor script has functions)
 
 #### Refactoring
 
-rename all references
+nice-to-have: rename all references
 
 
 ## Quickstart
 
 ```sh
-cd ~/repos # should be the same folder that holds the main tremor-runtime repo
-git clone git@github.csnzoo.com:adhamala/tremor-language-server.git
+cd ~/repos # should be the same folder that holds the main tremor-runtime repo (version >= 0.6)
+git clone git@github.com:wayfair-incubator/tremor-language-server.git
 cd tremor-language-server
 
 # during development
@@ -160,7 +162,6 @@ If you prefer not to use ale, these vim plugins should also work well as the ser
 * support parallel edits for trickle and tremor files
 * improve debugging
 * add tests
-* function signature info for completion as well as hover
 * ability to handle multiple script errors
 * use simd-json in tower and json rpc crates?
 * distribution without compiling

@@ -20,10 +20,10 @@ use clap::{App, Arg};
 use tower_lsp::{LspService, Server};
 
 fn main() {
-    let matches = App::new("tremor-language-server")
+    let matches = App::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
-        .about("Tremor Language Server (Trill)")
-        .author("The Tremor Team")
+        .about(env!("CARGO_PKG_DESCRIPTION"))
+        .author(env!("CARGO_PKG_AUTHORS"))
         .arg(
             Arg::with_name("language")
                 .help("Tremor language to support")

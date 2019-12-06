@@ -1,5 +1,5 @@
-use super::Language;
-use tremor_script::{errors, registry, script};
+use crate::language::prelude::*;
+use tremor_script::script::Script;
 
 #[derive(Debug)]
 pub struct TremorScript {
@@ -15,8 +15,8 @@ impl Default for TremorScript {
 }
 
 impl Language for TremorScript {
-    fn parse_err(&self, text: &str) -> Option<errors::Error> {
-        script::Script::parse(text, &self.registry).err()
+    fn parse_err(&self, text: &str) -> Option<Error> {
+        Script::parse(text, &self.registry).err()
     }
 
     fn functions(&self, module_name: &str) -> Vec<String> {

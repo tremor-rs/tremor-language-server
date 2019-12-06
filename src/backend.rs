@@ -1,3 +1,4 @@
+use crate::language;
 use futures::future;
 use halfbrown::HashMap;
 use jsonrpc_core::{BoxFuture, Result};
@@ -6,41 +7,21 @@ use std::fs;
 use std::sync::Mutex;
 use tower_lsp::lsp_types::*;
 use tower_lsp::{LanguageServer, Printer};
-use tremor_script::{errors, pos};
-
-mod tremor; // tremor-script
-mod trickle; // tremor-query
-
-// TODO move this to a separate file
-pub trait Language: Send + Sync {
-    fn parse_err(&self, text: &str) -> Option<errors::Error>;
-
-    fn functions(&self, _module_name: &str) -> Vec<String> {
-        vec![]
-    }
-}
-pub fn lookup(name: &str) -> Option<Box<dyn Language>> {
-    match name {
-        "tremor" => Some(Box::new(tremor::TremorScript::default())),
-        "trickle" => Some(Box::new(trickle::TremorQuery::default())),
-        _ => None,
-    }
-}
 
 #[derive(Debug, Default)]
-pub struct DocumentState {
+struct DocumentState {
     text: String,
     // TODO more fields here based on ast
 }
-pub type State = HashMap<Url, DocumentState>;
+type State = HashMap<Url, DocumentState>;
 
 pub struct Backend {
-    language: Box<dyn Language>,
+    language: Box<dyn language::Language>,
     state: Mutex<State>,
 }
 
 impl Backend {
-    pub fn new(language: Box<dyn Language>) -> Self {
+    pub fn new(language: Box<dyn language::Language>) -> Self {
         Self {
             language,
             state: Mutex::new(State::new()),
@@ -66,7 +47,7 @@ impl Backend {
 
         if let Some(e) = self.language.parse_err(text) {
             let range = match e.context() {
-                (_, Some(pos::Range(start, end))) => Range {
+                (_, Some(language::pos::Range(start, end))) => Range {
                     start: self.to_lsp_position(start),
                     end: self.to_lsp_position(end),
                 },
@@ -136,7 +117,7 @@ impl Backend {
     // utility functions
     // TODO move to utils module?
 
-    fn to_lsp_position(&self, location: pos::Location) -> Position {
+    fn to_lsp_position(&self, location: language::pos::Location) -> Position {
         // position in language server protocol is zero-based
         Position::new((location.line - 1) as u64, (location.column - 1) as u64)
     }

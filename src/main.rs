@@ -1,4 +1,5 @@
 mod backend;
+mod language;
 
 use backend::Backend;
 use clap::{App, Arg};
@@ -9,19 +10,20 @@ fn main() {
         .version(env!("CARGO_PKG_VERSION"))
         .about("Tremor language server")
         .arg(
-            Arg::with_name("backend")
-                .help("Language backend to use")
-                .short("b")
-                .long("backend")
+            Arg::with_name("language")
+                .help("Tremor language to support")
+                .short("l")
+                .long("language")
                 .takes_value(true),
         )
         .get_matches();
 
-    // defaults to supporting tremor file type (i.e. tremor-script)
-    let language_name = matches.value_of("backend").unwrap_or("tremor");
+    // if not set, defaults to supporting tremor-script
+    let language_name = matches
+        .value_of("language")
+        .unwrap_or(language::TREMOR_SCRIPT);
 
-    // TODO rename this to language module
-    match backend::lookup(language_name) {
+    match language::lookup(language_name) {
         Some(language) => {
             let stdin = tokio::io::stdin();
             let stdout = tokio::io::stdout();
@@ -35,7 +37,7 @@ fn main() {
             tokio::run(handle.run_until_exit(server));
         }
         None => {
-            eprintln!("Error: unknown backend {}", language_name);
+            eprintln!("Error: unknown tremor language {}", language_name);
             std::process::exit(1)
         }
     }

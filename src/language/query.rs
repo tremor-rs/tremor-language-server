@@ -1,5 +1,5 @@
-use super::Language;
-use tremor_script::{errors, query, registry};
+use crate::language::prelude::*;
+use tremor_script::query::Query;
 
 #[derive(Debug)]
 pub struct TremorQuery {
@@ -17,7 +17,7 @@ impl Default for TremorQuery {
 }
 
 impl Language for TremorQuery {
-    fn parse_err(&self, text: &str) -> Option<errors::Error> {
-        query::Query::parse(text, &self.registry, &self.aggr_registry).err()
+    fn parse_err(&self, text: &str) -> Option<Error> {
+        Query::parse(text, &self.registry, &self.aggr_registry).err()
     }
 }

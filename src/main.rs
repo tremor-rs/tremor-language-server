@@ -30,14 +30,15 @@ fn main() {
                 .short("l")
                 .long("language")
                 .takes_value(true)
-                .possible_values(language::NAMES),
+                .possible_values(language::NAMES)
+                .default_value(language::DEFAULT_NAME),
         )
         .get_matches();
 
-    // if not set, defaults to supporting tremor-script
     let language_name = matches
         .value_of("language")
-        .unwrap_or(language::DEFAULT_NAME);
+        // this is safe because we provide a default value for this arg above
+        .unwrap_or_else(|| unreachable!());
 
     match language::lookup(language_name) {
         Some(language) => {

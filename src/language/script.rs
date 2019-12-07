@@ -15,8 +15,8 @@
 use crate::language::prelude::*;
 use tremor_script::script::Script;
 
-pub const TREMOR_SCRIPT: &str = "tremor-script";
-pub const TREMOR_SCRIPT_FILE_EXT: &str = "tremor";
+pub const LANGUAGE_NAME: &str = "tremor-script";
+pub const FILE_EXTENSION: &str = "tremor";
 
 #[derive(Debug)]
 pub struct TremorScript {

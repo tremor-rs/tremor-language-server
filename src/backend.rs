@@ -97,15 +97,11 @@ impl Backend {
         if let Some(partial_line) = self.get_partial_line(text, position) {
             file_dbg("get_completions_partial_line", &partial_line);
 
-            // TODO support partial completions too, after ::
-            if partial_line.ends_with("::") {
-                // TODO more efficient. also save as constant and take len
-                if let Some(module_name) = &partial_line[..partial_line.len() - 2]
-                    .split_ascii_whitespace()
-                    .last()
-                {
-                    file_dbg("get_completions_module_name", module_name);
+            if let Some(last_token) = partial_line.split_ascii_whitespace().last() {
+                let module_parts: Vec<&str> = last_token.rsplitn(2, "::").collect();
 
+                if let Some(module_name) = module_parts.get(1) {
+                    file_dbg("get_completions_module_name", module_name);
                     return self
                         .language
                         .functions(module_name)

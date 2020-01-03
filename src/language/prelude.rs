@@ -14,5 +14,30 @@
 
 pub use super::Language;
 
+pub use std::collections::HashMap;
+pub use tremor_script::docs::FunctionDoc;
 pub use tremor_script::errors::Error;
 pub use tremor_script::registry;
+
+macro_rules! load_function_docs {
+    ($language_name:expr) => {{
+        let bytes = include_bytes!(concat!(
+            env!("OUT_DIR"),
+            "/function_docs.",
+            $language_name,
+            ".bin"
+        ));
+
+        match bincode::deserialize::<HashMap<String, FunctionDoc>>(bytes) {
+            Ok(function_docs) => {
+                //println!("{:?}", function_docs.get("stats::min").unwrap().signature);
+                function_docs
+            }
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                HashMap::new()
+                //std::process::exit(1)
+            }
+        }
+    }};
+}

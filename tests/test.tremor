@@ -1,6 +1,17 @@
-let a = random::integer(0, 100); # one of 0-99
+let a = random::integer (0, 100); # one of 0-99
 #emit a;
 
-let b = origin::
+let b = origin::host();
 
-emit 42 >> 63;
+let c = 2 + 2;
+let d = 2 xor 3;
+
+##record::  # hell(
+
+#random::
+
+random::string(length);
+
+string::format(format, arg, …);
+
+##emit 42 >> 63;

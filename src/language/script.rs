@@ -21,12 +21,14 @@ pub const FILE_EXTENSION: &str = "tremor";
 #[derive(Debug)]
 pub struct TremorScript {
     registry: registry::Registry,
+    all_function_docs: HashMap<String, FunctionDoc>,
 }
 
 impl Default for TremorScript {
     fn default() -> Self {
         Self {
             registry: registry::registry(),
+            all_function_docs: load_function_docs!("tremor-script"),
         }
     }
 }
@@ -38,9 +40,15 @@ impl Language for TremorScript {
 
     fn functions(&self, module_name: &str) -> Vec<String> {
         if let Some(module) = self.registry.functions.get(module_name) {
-            module.keys().cloned().collect()
+            let mut vec: Vec<String> = module.keys().cloned().collect();
+            vec.sort();
+            vec
         } else {
             vec![]
         }
+    }
+
+    fn function_doc(&self, full_function_name: &str) -> Option<&FunctionDoc> {
+        self.all_function_docs.get(full_function_name)
     }
 }

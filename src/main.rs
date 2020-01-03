@@ -20,6 +20,8 @@ use clap::{App, Arg};
 use tower_lsp::{LspService, Server};
 
 fn main() {
+    backend::file_dbg("main", "main");
+
     let matches = App::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
         .about(env!("CARGO_PKG_DESCRIPTION"))

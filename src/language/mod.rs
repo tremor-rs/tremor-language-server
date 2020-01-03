@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#[macro_use]
 mod prelude;
 mod query;
 mod script;
@@ -34,10 +35,14 @@ pub trait Language: Send + Sync {
     fn functions(&self, _module_name: &str) -> Vec<String> {
         vec![]
     }
+
+    fn function_doc(&self, _full_function_name: &str) -> Option<&prelude::FunctionDoc> {
+        None
+    }
 }
 
-pub fn lookup(name: &str) -> Option<Box<dyn Language>> {
-    match name {
+pub fn lookup(language_name: &str) -> Option<Box<dyn Language>> {
+    match language_name {
         script::LANGUAGE_NAME | script::FILE_EXTENSION => {
             Some(Box::new(script::TremorScript::default()))
         }

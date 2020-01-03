@@ -1,23 +1,26 @@
-define grouper::bucket operator kfc;
-
-define script categorize
-script
-  let $rate = 1;
-  let $class = event.`group`;
-  { "event": event, "rate": $rate, "class": $class };
+# 15 seconds
+defin tumbling window `15secs`
+ with
+   interval = datetime:with_seconds(15),
 end;
 
-create operator kfc from kfc;
+define tumbling window `10secs`
+ with
+   interval = datetime::with_seconds(10),
+end;
 
-# where script definition and instance name are the same, we can
-# omit the from clause in operator and script 'create' statements
-create script categorize
+define tumbling window `5secs`
+ with
+   interval = datetime::with_seconds(5),
+end;
 
-# Stream ingested data into categorize script
-select event from in into categorize;
-
-# Stream scripted events into kfc bucket operator
-select event from categorize into kfc;
-
-# Stream bucketed events into out stream
-select event from kfc into out;
+select {
+    "count": stats::count(),
+    "min": stats::min(event.value),
+    "max": stats::max(event.value),
+    "mean": stats::mean(event.value),
+    "stdev": stats::stdev(event.value),
+    "var": stats::var(event.value),
+}
+from in[`15secs`]
+into out;

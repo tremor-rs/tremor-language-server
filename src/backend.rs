@@ -88,41 +88,73 @@ impl Backend {
     }
 
     fn get_completions(&self, text: &str, position: Position) -> Vec<CompletionItem> {
-        file_dbg("get_completions_text", text);
-        file_dbg(
-            "get_completions_position",
-            &format!("{}:{}", position.line, position.character),
-        );
+        if let Some(token) = self.get_token(text, position) {
+            file_dbg("get_completions_token", &token);
+            let module_parts: Vec<&str> = token.rsplitn(2, "::").collect();
 
-        if let Some(partial_line) = self.get_partial_line(text, position) {
-            file_dbg("get_completions_partial_line", &partial_line);
-
-            if let Some(last_token) = partial_line.split_ascii_whitespace().last() {
-                let module_parts: Vec<&str> = last_token.rsplitn(2, "::").collect();
-
-                if let Some(module_name) = module_parts.get(1) {
-                    file_dbg("get_completions_module_name", module_name);
-                    return self
-                        .language
-                        .functions(module_name)
-                        .iter()
-                        .map(|func| {
-                            //let insert_text = format!("{}($1)", func);
-                            let insert_text = format!("{}()", func);
-                            CompletionItem {
-                                label: func.to_string(),
-                                kind: Some(CompletionItemKind::Function),
-                                insert_text: Some(insert_text),
-                                insert_text_format: Some(InsertTextFormat::Snippet),
-                                ..CompletionItem::default()
-                            }
-                        })
-                        .collect();
-                }
+            if let Some(module_name) = module_parts.get(1) {
+                file_dbg("get_completions_module_name", module_name);
+                return self
+                    .language
+                    .functions(module_name)
+                    .iter()
+                    .map(|function_name| {
+                        let mut detail = None;
+                        let mut documentation = None;
+                        let mut insert_text = None;
+                        if let Some(function_doc) = self
+                            .language
+                            .function_doc(&format!("{}::{}", module_name, function_name))
+                        {
+                            file_dbg("get_completions_function_doc", &function_doc.description);
+                            detail = Some(function_doc.signature.to_string());
+                            documentation = Some(Documentation::MarkupContent(MarkupContent {
+                                kind: MarkupKind::Markdown,
+                                value: function_doc.description.clone(),
+                            }));
+                            let args_snippet = function_doc
+                                .signature
+                                .args
+                                .iter()
+                                .enumerate()
+                                // produces snippet text like ${1:arg} (where arg is the placeholder text)
+                                // https://microsoft.github.io/language-server-protocol/specifications/specification-3-14/#snippet-syntax
+                                .map(|(i, arg)| format!("${{{}:{}}}", i + 1, arg))
+                                .collect::<Vec<String>>()
+                                .join(", ");
+                            insert_text = Some(format!("{}({})", function_name, args_snippet));
+                        };
+                        CompletionItem {
+                            label: function_name.to_string(),
+                            kind: Some(CompletionItemKind::Function),
+                            detail,
+                            documentation,
+                            insert_text,
+                            insert_text_format: Some(InsertTextFormat::Snippet),
+                            ..CompletionItem::default()
+                        }
+                    })
+                    .collect();
             }
         }
 
         vec![]
+    }
+
+    fn get_hover_content(&self, text: &str, position: Position) -> Option<MarkupContent> {
+        if let Some(token) = self.get_token(text, position) {
+            file_dbg("get_hover_content_token", &token);
+            if token.contains("::") {
+                if let Some(function_doc) = self.language.function_doc(&token) {
+                    file_dbg("get_hover_content_function_doc", &function_doc.description);
+                    return Some(MarkupContent {
+                        kind: MarkupKind::Markdown,
+                        value: function_doc.to_string(),
+                    });
+                }
+            }
+        }
+        None
     }
 
     // utility functions
@@ -133,11 +165,30 @@ impl Backend {
         Position::new((location.line - 1) as u64, (location.column - 1) as u64)
     }
 
-    fn get_partial_line(&self, text: &str, position: Position) -> Option<String> {
-        let lines: Vec<&str> = text.split("\n").collect();
+    fn get_token(&self, text: &str, position: Position) -> Option<String> {
+        file_dbg("get_token_text", text);
+        file_dbg(
+            "get_token_position",
+            &format!("{}:{}", position.line, position.character),
+        );
+
+        let lines: Vec<&str> = text.split('\n').collect();
+
         if let Some(line) = lines.get(position.line as usize) {
             // TODO index check here
-            Some((&line[..position.character as usize]).to_string())
+            let start_index = match line[..position.character as usize].rfind(char::is_whitespace) {
+                Some(i) => i + 1,
+                None => 0,
+            };
+            let end_index = line[position.character as usize..]
+                .find(|c: char| c.is_whitespace() || c == '(')
+                .unwrap_or(0)
+                + (position.character as usize);
+
+            file_dbg("get_token_start_index", &start_index.to_string());
+            file_dbg("get_token_end_index", &end_index.to_string());
+
+            Some(line[start_index..end_index].to_string())
         } else {
             None
         }
@@ -162,7 +213,7 @@ impl LanguageServer for Backend {
                 color_provider: None,
                 completion_provider: Some(CompletionOptions {
                     resolve_provider: None,
-                    trigger_characters: Some(vec!["::".to_string()]),
+                    trigger_characters: Some(vec![":".to_string()]),
                 }),
                 definition_provider: None,
                 document_formatting_provider: None,
@@ -199,7 +250,7 @@ impl LanguageServer for Backend {
         file_dbg("initialized", "initialized");
         // TODO check this from clients
         //printer.show_message(MessageType::Info, "server initialized!");
-        printer.log_message(MessageType::Info, "server initialized!");
+        printer.log_message(MessageType::Info, "Initialized Trill!");
     }
 
     // TODO do we need this?
@@ -244,14 +295,19 @@ impl LanguageServer for Backend {
 
     fn hover(&self, params: TextDocumentPositionParams) -> Self::HoverFuture {
         file_dbg("hover", "hover");
-        // TODO remove. just for test right now
-        let result = Hover {
-            contents: HoverContents::Scalar(MarkedString::String(
-                params.position.character.to_string(),
-            )),
-            range: None,
-        };
-        Box::new(future::ok(Some(result)))
+        // TODO remove unwraps
+        // TODO bake state lookup in self
+        let state = self.state.lock().unwrap();
+        let doc = state.get(&params.text_document.uri).unwrap();
+
+        let result = self
+            .get_hover_content(&doc.text, params.position)
+            .map(|hover_content| Hover {
+                contents: HoverContents::Markup(hover_content),
+                range: None,
+            });
+
+        Box::new(future::ok(result))
     }
 
     // TODO do we need this?
@@ -262,6 +318,8 @@ impl LanguageServer for Backend {
 
     fn did_open(&self, printer: &Printer, params: DidOpenTextDocumentParams) {
         file_dbg("didOpen", "didOpen");
+        file_dbg("didOpen_language", &params.text_document.language_id);
+
         let uri = params.text_document.uri;
         if let Ok(path) = uri.to_file_path() {
             // TODO pull this from params.text_document.text

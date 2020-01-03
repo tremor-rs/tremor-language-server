@@ -13,15 +13,15 @@ nice-to-have: apply fix suggestions from errors
 
 #### Completion
 
-code completion (as you type/on-demand) for module functions
+code completion (as you type/on-demand) for module functions -- function names with signature/doc info as well as placeholders for arguments.
 
 nice-to-have: code completion for variables as well as other language constructs
 
 #### Hover
 
-diagnostics on mouse hover (or editor command)
+diagnostics and function documentation on mouse hover (or editor command)
 
-nice-to-have: type info/documentation for references (where applicable)
+nice-to-have: documentation for variables (eg: assignment info)
 
 #### Navigation
 
@@ -57,6 +57,8 @@ https://github.com/wayfair-incubator/tremor-vscode
 
 ### Vim setup
 
+Prerequisite: install https://github.com/wayfair-incubator/tremor-vim so that vim is aware of tremor filetypes (you also get syntax highlighting as a bonus).
+
 For use with vim, we have a forked version of [ale](https://github.com/dense-analysis/ale) that can interact with the tremor language server:
 
 https://github.com/wayfair-incubator/ale/tree/tremor
@@ -83,8 +85,8 @@ let g:ale_linters_explicit = 1
 
 " active linters
 let g:ale_linters = {
-\   'tremor': ['tremor-language-server'],
-\   'trickle': ['tremor-language-server'],
+\   'tremor-script': ['tremor-language-server'],
+\   'tremor-query': ['tremor-language-server'],
 \}
 
 " when to run linting/fixing. choose as desired

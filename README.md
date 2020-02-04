@@ -85,8 +85,8 @@ let g:ale_linters_explicit = 1
 
 " active linters
 let g:ale_linters = {
-\   'tremor-script': ['tremor-language-server'],
-\   'tremor-query': ['tremor-language-server'],
+\   'tremor': ['tremor-language-server'],
+\   'trickle': ['tremor-language-server'],
 \}
 
 " when to run linting/fixing. choose as desired

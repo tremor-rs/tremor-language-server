@@ -14,4 +14,8 @@ random::string(length);
 
 string::format(format, arg, …);
 
+match event of
+
+emit
+
 ##emit 42 >> 63;

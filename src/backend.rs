@@ -165,6 +165,12 @@ impl Backend {
         Position::new((location.line - 1) as u64, (location.column - 1) as u64)
     }
 
+    // naive implementation for detecting tokens which works for our current usecase
+    // TODO eliminate this if we use lexer here directly
+    fn is_token_boundary(c: char) -> bool {
+        !(c.is_alphanumeric() || c == ':')
+    }
+
     fn get_token(&self, text: &str, position: Position) -> Option<String> {
         file_dbg("get_token_text", text);
         file_dbg(
@@ -176,12 +182,13 @@ impl Backend {
 
         if let Some(line) = lines.get(position.line as usize) {
             // TODO index check here
-            let start_index = match line[..position.character as usize].rfind(char::is_whitespace) {
-                Some(i) => i + 1,
-                None => 0,
-            };
+            let start_index =
+                match line[..position.character as usize].rfind(Self::is_token_boundary) {
+                    Some(i) => i + 1,
+                    None => 0,
+                };
             let end_index = line[position.character as usize..]
-                .find(|c: char| c.is_whitespace() || c == '(')
+                .find(Self::is_token_boundary)
                 .unwrap_or(0)
                 + (position.character as usize);
 

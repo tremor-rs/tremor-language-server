@@ -72,8 +72,18 @@ Plug 'wayfair-incubator/ale', { 'branch': 'tremor' }
 Vim and ale settings that work nice with the tremor language server:
 
 ```vim
+" completion menu
+set completeopt=menuone,longest,popup " always show the menu, insert longest match, use popup window for extra info
+"set completepopup=border:off          " remove the border from the completion popup window
+
 " turn on omnicomplete based on ale
 set omnifunc=ale#completion#OmniFunc
+
+" enable ale completion (as you type), where available
+"let g:ale_completion_enabled = 1
+
+" turn on vim mouse support in all modes (for hover info)
+set mouse=a
 
 " show hover information on mouse over (vim mouse support should be turned on)
 " xterm2 makes hover work with tmux as well
@@ -157,6 +167,17 @@ If you prefer not to use ale, these vim plugins should also work well as the ser
 * https://github.com/prabirshrestha/vim-lsp
 * https://github.com/autozimu/LanguageClient-neovim
 
+#### Notes
+
+* If you are using vim from terminal and not seeing error diagnostics or function docs on hover,
+  check if the vim version you are using has been compiled with balloon support -- output of
+  `vim --version` should show items `+balloon_eval` and `+balloon_eval_term`. If not, you will
+  need to find a vim package for your environment with the support baked in (or compile vim yourself).
+  Eg: for mac, this may mean installing `macvim` via homebrew.
+* By default, vim's omni-completion items (eg: tremor function names after typing `module_name::`) are
+  triggered via `Ctrl-x Ctrl-o`, while normal keyword completion is via `Ctrl-p/Ctrl-n`. If you prefer a
+  more accessible keybinding for these (eg: `Tab`), have a look at extensions like
+  [VimCompletesMe](https://github.com/ajh17/VimCompletesMe), or [Supertab](https://github.com/ervandew/supertab).
 
 ## TODO
 

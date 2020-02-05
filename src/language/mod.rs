@@ -17,7 +17,8 @@ mod prelude;
 mod query;
 mod script;
 
-pub use tremor_script::pos;
+pub use tremor_script::highlighter::ErrorLevel;
+pub use tremor_script::pos::Location;
 
 pub const NAMES: &[&str] = &[
     script::LANGUAGE_NAME,
@@ -30,7 +31,7 @@ pub const NAMES: &[&str] = &[
 pub const DEFAULT_NAME: &str = script::LANGUAGE_NAME;
 
 pub trait Language: Send + Sync {
-    fn parse_err(&self, text: &str) -> Option<prelude::Error>;
+    fn parse_errors(&self, text: &str) -> Option<Vec<prelude::Error>>;
 
     fn functions(&self, _module_name: &str) -> Vec<String> {
         vec![]

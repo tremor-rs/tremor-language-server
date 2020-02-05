@@ -59,29 +59,28 @@ impl Backend {
 
         let mut diagnostics = Vec::new();
 
-        if let Some(e) = self.language.parse_err(text) {
-            let range = match e.context() {
-                (_, Some(language::pos::Range(start, end))) => Range {
-                    start: self.to_lsp_position(start),
-                    end: self.to_lsp_position(end),
-                },
-                _ => Range::default(),
-            };
+        if let Some(errors) = self.language.parse_errors(text) {
+            for e in &errors {
+                let range = Range {
+                    start: self.to_lsp_position(&e.start),
+                    end: self.to_lsp_position(&e.end),
+                };
 
-            let mut message = e.to_string();
-            if let Some(hint) = e.hint() {
-                // comma here splits the message into multiple lines
-                message = format!("{}, Note: {}", message, hint);
+                let mut message = e.callout.to_string();
+                if let Some(hint) = &e.hint {
+                    // comma here splits the message into multiple lines
+                    message = format!("{}, Note: {}", message, hint);
+                }
+
+                diagnostics.push(Diagnostic {
+                    range,
+                    message,
+                    severity: Some(self.to_lsp_severity(&e.level)),
+                    source: Some("tremor-language-server".to_string()),
+                    code: None,
+                    related_information: None,
+                });
             }
-
-            diagnostics.push(Diagnostic {
-                range,
-                message,
-                severity: Some(DiagnosticSeverity::Error),
-                source: Some("tremor-language-server".to_string()),
-                code: None,
-                related_information: None,
-            });
         }
 
         diagnostics
@@ -160,9 +159,17 @@ impl Backend {
     // utility functions
     // TODO move to utils module?
 
-    fn to_lsp_position(&self, location: language::pos::Location) -> Position {
+    fn to_lsp_position(&self, location: &language::Location) -> Position {
         // position in language server protocol is zero-based
         Position::new((location.line - 1) as u64, (location.column - 1) as u64)
+    }
+
+    fn to_lsp_severity(&self, error_level: &language::ErrorLevel) -> DiagnosticSeverity {
+        match error_level {
+            language::ErrorLevel::Error => DiagnosticSeverity::Error,
+            language::ErrorLevel::Warning => DiagnosticSeverity::Warning,
+            language::ErrorLevel::Hint => DiagnosticSeverity::Hint,
+        }
     }
 
     // naive implementation for detecting tokens which works for our current usecase

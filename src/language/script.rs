@@ -34,8 +34,11 @@ impl Default for TremorScript {
 }
 
 impl Language for TremorScript {
-    fn parse_err(&self, text: &str) -> Option<Error> {
-        Script::parse(text, &self.registry).err()
+    fn parse_errors(&self, text: &str) -> Option<Vec<Error>> {
+        match Script::parse(text, &self.registry) {
+            Ok(script) => Some(script.warnings.iter().map(|w| w.into()).collect()),
+            Err(ref e) => Some(vec![e.into()]),
+        }
     }
 
     fn functions(&self, module_name: &str) -> Vec<String> {

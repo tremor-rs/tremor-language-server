@@ -41,8 +41,11 @@ impl Default for TremorQuery {
 }
 
 impl Language for TremorQuery {
-    fn parse_err(&self, text: &str) -> Option<Error> {
-        Query::parse(text, &self.registry, &self.aggr_registry).err()
+    fn parse_errors(&self, text: &str) -> Option<Vec<Error>> {
+        match Query::parse(text, &self.registry, &self.aggr_registry) {
+            Ok(query) => Some(query.warnings.iter().map(|w| w.into()).collect()),
+            Err(ref e) => Some(vec![e.into()]),
+        }
     }
 
     fn functions(&self, module_name: &str) -> Vec<String> {

@@ -16,7 +16,8 @@ pub use super::Language;
 
 pub use std::collections::HashMap;
 pub use tremor_script::docs::FunctionDoc;
-pub use tremor_script::errors::Error;
+pub use tremor_script::highlighter::Error;
+
 pub use tremor_script::registry;
 
 macro_rules! load_function_docs {

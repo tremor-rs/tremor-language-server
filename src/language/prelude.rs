@@ -12,13 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub use super::Language;
-
 pub use std::collections::HashMap;
 pub use tremor_script::docs::FunctionDoc;
 pub use tremor_script::highlighter::Error;
-
 pub use tremor_script::registry;
+
+pub trait Language: Send + Sync {
+    fn parse_errors(&self, text: &str) -> Option<Vec<Error>>;
+
+    fn functions(&self, _module_name: &str) -> Vec<String> {
+        vec![]
+    }
+
+    fn function_doc(&self, _full_function_name: &str) -> Option<&FunctionDoc> {
+        None
+    }
+}
 
 macro_rules! load_function_docs {
     ($language_name:expr) => {{
@@ -30,14 +39,10 @@ macro_rules! load_function_docs {
         ));
 
         match bincode::deserialize::<HashMap<String, FunctionDoc>>(bytes) {
-            Ok(function_docs) => {
-                //println!("{:?}", function_docs.get("stats::min").unwrap().signature);
-                function_docs
-            }
+            Ok(function_docs) => function_docs,
             Err(e) => {
                 eprintln!("Error: {}", e);
                 HashMap::new()
-                //std::process::exit(1)
             }
         }
     }};

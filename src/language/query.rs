@@ -24,7 +24,7 @@ pub struct TremorQuery {
     registry: registry::Registry,
     aggr_registry: registry::Aggr,
     all_function_docs: HashMap<String, FunctionDoc>,
-    // tremor-query is superset of tremor-script
+    // tremor-query is built on top of tremor-script
     tremor_script: TremorScript,
 }
 

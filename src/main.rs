@@ -14,6 +14,7 @@
 
 mod backend;
 mod language;
+mod lsp_utils;
 
 use backend::Backend;
 use clap::{App, Arg};
@@ -32,8 +33,8 @@ fn main() {
                 .short("l")
                 .long("language")
                 .takes_value(true)
-                .possible_values(language::NAMES)
-                .default_value(language::DEFAULT_NAME),
+                .possible_values(language::LANGUAGE_NAMES)
+                .default_value(language::DEFAULT_LANGUAGE_NAME),
         )
         .get_matches();
 

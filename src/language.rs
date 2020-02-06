@@ -20,7 +20,10 @@ mod script;
 pub use tremor_script::highlighter::ErrorLevel;
 pub use tremor_script::pos::Location;
 
-pub const NAMES: &[&str] = &[
+// common language trait
+pub use prelude::Language;
+
+pub const LANGUAGE_NAMES: &[&str] = &[
     script::LANGUAGE_NAME,
     query::LANGUAGE_NAME,
     // alternate names for above
@@ -28,19 +31,7 @@ pub const NAMES: &[&str] = &[
     query::FILE_EXTENSION,
 ];
 
-pub const DEFAULT_NAME: &str = script::LANGUAGE_NAME;
-
-pub trait Language: Send + Sync {
-    fn parse_errors(&self, text: &str) -> Option<Vec<prelude::Error>>;
-
-    fn functions(&self, _module_name: &str) -> Vec<String> {
-        vec![]
-    }
-
-    fn function_doc(&self, _full_function_name: &str) -> Option<&prelude::FunctionDoc> {
-        None
-    }
-}
+pub const DEFAULT_LANGUAGE_NAME: &str = script::LANGUAGE_NAME;
 
 pub fn lookup(language_name: &str) -> Option<Box<dyn Language>> {
     match language_name {

@@ -1,0 +1,21 @@
+[licenses]
+unlicensed = "deny"
+
+#
+# License types that we explicitly allow
+#
+
+allow = [
+    "Apache-2.0",
+    "BSD-2-Clause",
+    "BSD-2-Clause-FreeBSD",
+    "BSD-3-Clause",
+    "BSL-1.0",
+    "ISC",
+    "MIT",
+    "Unlicense",
+    "Zlib",
+    "MPL-2.0",
+    "CC0-1.0",
+    "OpenSSL",
+]

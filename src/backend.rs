@@ -90,53 +90,61 @@ impl Backend {
     }
 
     fn get_completions(&self, text: &str, position: Position) -> Vec<CompletionItem> {
-        if let Some(token) = lsp_utils::get_token(text, position) {
-            file_dbg("get_completions_token", &token);
-            let module_parts: Vec<&str> = token.rsplitn(2, "::").collect();
+        let pre_position = Position {
+            line: position.line,
+            character: position.character - 1,
+        };
 
-            if let Some(module_name) = module_parts.get(1) {
-                file_dbg("get_completions_module_name", module_name);
-                return self
-                    .language
-                    .functions(module_name)
-                    .iter()
-                    .map(|function_name| {
-                        let mut detail = None;
-                        let mut documentation = None;
-                        let mut insert_text = None;
-                        if let Some(function_doc) = self
-                            .language
-                            .function_doc(&format!("{}::{}", module_name, function_name))
-                        {
-                            file_dbg("get_completions_function_doc", &function_doc.description);
-                            detail = Some(function_doc.signature.to_string());
-                            documentation = Some(Documentation::MarkupContent(MarkupContent {
-                                kind: MarkupKind::Markdown,
-                                value: function_doc.description.clone(),
-                            }));
-                            let args_snippet = function_doc
-                                .signature
-                                .args
-                                .iter()
-                                .enumerate()
-                                // produces snippet text like ${1:arg} (where arg is the placeholder text)
-                                // https://microsoft.github.io/language-server-protocol/specifications/specification-3-14/#snippet-syntax
-                                .map(|(i, arg)| format!("${{{}:{}}}", i + 1, arg))
-                                .collect::<Vec<String>>()
-                                .join(", ");
-                            insert_text = Some(format!("{}({})", function_name, args_snippet));
-                        };
-                        CompletionItem {
-                            label: function_name.to_string(),
-                            kind: Some(CompletionItemKind::Function),
-                            detail,
-                            documentation,
-                            insert_text,
-                            insert_text_format: Some(InsertTextFormat::Snippet),
-                            ..CompletionItem::default()
-                        }
-                    })
-                    .collect();
+        if let Some(tokens) = self.language.tokenize(text) {
+            if let Some(token) = lsp_utils::get_token(tokens, pre_position) {
+                file_dbg("get_completions_token", &token);
+                // TODO eliminate the need for this by improving get_token()
+                let module_parts: Vec<&str> = token.rsplitn(2, "::").collect();
+
+                if let Some(module_name) = module_parts.get(1) {
+                    file_dbg("get_completions_module_name", module_name);
+                    return self
+                        .language
+                        .functions(module_name)
+                        .iter()
+                        .map(|function_name| {
+                            let mut detail = None;
+                            let mut documentation = None;
+                            let mut insert_text = None;
+                            if let Some(function_doc) = self
+                                .language
+                                .function_doc(&format!("{}::{}", module_name, function_name))
+                            {
+                                file_dbg("get_completions_function_doc", &function_doc.description);
+                                detail = Some(function_doc.signature.to_string());
+                                documentation = Some(Documentation::MarkupContent(MarkupContent {
+                                    kind: MarkupKind::Markdown,
+                                    value: function_doc.description.clone(),
+                                }));
+                                let args_snippet = function_doc
+                                    .signature
+                                    .args
+                                    .iter()
+                                    .enumerate()
+                                    // produces snippet text like ${1:arg} (where arg is the placeholder text)
+                                    // https://microsoft.github.io/language-server-protocol/specifications/specification-3-14/#snippet-syntax
+                                    .map(|(i, arg)| format!("${{{}:{}}}", i + 1, arg))
+                                    .collect::<Vec<String>>()
+                                    .join(", ");
+                                insert_text = Some(format!("{}({})", function_name, args_snippet));
+                            };
+                            CompletionItem {
+                                label: function_name.to_string(),
+                                kind: Some(CompletionItemKind::Function),
+                                detail,
+                                documentation,
+                                insert_text,
+                                insert_text_format: Some(InsertTextFormat::Snippet),
+                                ..CompletionItem::default()
+                            }
+                        })
+                        .collect();
+                }
             }
         }
 
@@ -144,9 +152,10 @@ impl Backend {
     }
 
     fn get_hover_content(&self, text: &str, position: Position) -> Option<MarkupContent> {
-        if let Some(token) = lsp_utils::get_token(text, position) {
-            file_dbg("get_hover_content_token", &token);
-            if token.contains("::") {
+        // TODO merge the repeated tokenize operation with get_completions()?
+        if let Some(tokens) = self.language.tokenize(text) {
+            if let Some(token) = lsp_utils::get_token(tokens, position) {
+                file_dbg("get_hover_content_token", &token);
                 if let Some(function_doc) = self.language.function_doc(&token) {
                     file_dbg("get_hover_content_function_doc", &function_doc.description);
                     return Some(MarkupContent {

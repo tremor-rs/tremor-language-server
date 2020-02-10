@@ -17,6 +17,8 @@ pub use tremor_script::docs::FunctionDoc;
 pub use tremor_script::highlighter::Error;
 pub use tremor_script::registry;
 
+pub use tremor_script::lexer::{tokenizer, Token, TokenSpan};
+
 pub trait Language: Send + Sync {
     fn parse_errors(&self, text: &str) -> Option<Vec<Error>>;
 
@@ -26,6 +28,14 @@ pub trait Language: Send + Sync {
 
     fn function_doc(&self, _full_function_name: &str) -> Option<&FunctionDoc> {
         None
+    }
+
+    fn tokenize<'input>(&self, text: &'input str) -> Option<Vec<TokenSpan<'input>>> {
+        match tokenizer(text).collect() {
+            Ok(tokens) => Some(tokens),
+            // TODO log error, or pass on as result
+            Err(_e) => None,
+        }
     }
 }
 

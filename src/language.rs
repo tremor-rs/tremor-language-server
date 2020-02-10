@@ -21,7 +21,7 @@ pub use tremor_script::highlighter::ErrorLevel;
 pub use tremor_script::pos::Location;
 
 // common language trait
-pub use prelude::Language;
+pub use prelude::{Language, Token, TokenSpan};
 
 pub const LANGUAGE_NAMES: &[&str] = &[
     script::LANGUAGE_NAME,

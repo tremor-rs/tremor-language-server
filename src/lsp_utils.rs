@@ -15,9 +15,20 @@
 use crate::language;
 use tower_lsp::lsp_types::*;
 
+use crate::backend::file_dbg;
+
 pub fn to_lsp_position(location: &language::Location) -> Position {
     // position in language server protocol is zero-based
     Position::new((location.line - 1) as u64, (location.column - 1) as u64)
+}
+
+pub fn to_language_location(position: &Position) -> language::Location {
+    // location numbers in our languages starts from one
+    language::Location::new(
+        (position.line + 1) as usize,
+        (position.character + 1) as usize,
+        0, // absolute byte offset -- we don't use it here so setting to 0
+    )
 }
 
 pub fn to_lsp_severity(error_level: &language::ErrorLevel) -> DiagnosticSeverity {
@@ -28,38 +39,53 @@ pub fn to_lsp_severity(error_level: &language::ErrorLevel) -> DiagnosticSeverity
     }
 }
 
-pub fn get_token(text: &str, position: Position) -> Option<String> {
-    //file_dbg("get_token_text", text);
-    //file_dbg(
-    //    "get_token_position",
-    //    &format!("{}:{}", position.line, position.character),
-    //);
+pub fn get_token(tokens: Vec<language::TokenSpan>, position: Position) -> Option<String> {
+    let location = to_language_location(&position);
 
-    let lines: Vec<&str> = text.split('\n').collect();
+    //file_dbg("get_token_location_line", &location.line.to_string());
+    //file_dbg("get_token_location_column", &location.column.to_string());
 
-    if let Some(line) = lines.get(position.line as usize) {
-        // TODO index check here
-        let start_index = match line[..position.character as usize].rfind(is_token_boundary) {
-            Some(i) => i + 1,
-            None => 0,
-        };
-        let end_index = line[position.character as usize..]
-            .find(is_token_boundary)
-            .unwrap_or(0)
-            + (position.character as usize);
+    let mut token = None;
+    for (i, t) in tokens.iter().enumerate() {
+        if t.span.end.line == location.line && t.span.end.column > location.column {
+            //file_dbg("get_token_span_end", &token.span.end.line.to_string());
+            //file_dbg("get_token_location_end", &location.line.to_string());
+            file_dbg("get_token_t_value", &t.value.to_string());
 
-        //file_dbg("get_token_start_index", &start_index.to_string());
-        //file_dbg("get_token_end_index", &end_index.to_string());
+            token = match t.value {
+                language::Token::Ident(_, _) => {
+                    if language::Token::ColonColon == tokens[i - 1].value {
+                        Some(format!(
+                            "{}{}{}",
+                            tokens[i - 2].value,
+                            tokens[i - 1].value,
+                            tokens[i].value
+                        ))
+                    } else if language::Token::ColonColon == tokens[i + 1].value {
+                        Some(format!(
+                            "{}{}{}",
+                            tokens[i].value,
+                            tokens[i + 1].value,
+                            tokens[i + 2].value,
+                        ))
+                    } else {
+                        None
+                    }
+                }
 
-        Some(line[start_index..end_index].to_string())
-    } else {
-        None
+                language::Token::ColonColon => Some(format!(
+                    "{}{}{}",
+                    tokens[i - 1].value,
+                    //t.value,
+                    tokens[i].value,
+                    tokens[i + 1].value
+                )),
+                _ => None,
+            };
+
+            break;
+        }
     }
-}
-
-// naive implementation for detecting tokens. works for our current needs
-// TODO eliminate this if we use lexer directly from language trait
-fn is_token_boundary(c: char) -> bool {
-    // treat : as valid for token for now, since it occurs in module::function pairs
-    !(c.is_alphanumeric() || c == ':')
+    //file_dbg("get_token_return", &token.clone().unwrap_or_default());
+    token
 }

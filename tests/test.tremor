@@ -16,7 +16,17 @@ string::format(format, arg, …);
 
 array[chash::jump()]
 
-chash::jump()
+hello chash::jump()
+
+`chash::jump()`
+
+"chash::jump"
+
+"random string {random::string()}."
+
+event.`random::string()`
+
+ddd  random:: aa
 
 match event of
 

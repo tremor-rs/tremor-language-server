@@ -65,12 +65,12 @@ impl Backend {
         if let Some(errors) = self.language.parse_errors(text) {
             for e in &errors {
                 let range = Range {
-                    start: lsp_utils::to_lsp_position(&e.start),
-                    end: lsp_utils::to_lsp_position(&e.end),
+                    start: lsp_utils::to_lsp_position(&e.start()),
+                    end: lsp_utils::to_lsp_position(&e.end()),
                 };
 
-                let mut message = e.callout.to_string();
-                if let Some(hint) = &e.hint {
+                let mut message = e.callout().to_string();
+                if let Some(hint) = &e.hint() {
                     // comma here splits the message into multiple lines
                     message = format!("{}, Note: {}", message, hint);
                 }
@@ -78,7 +78,7 @@ impl Backend {
                 diagnostics.push(Diagnostic {
                     range,
                     message,
-                    severity: Some(lsp_utils::to_lsp_severity(&e.level)),
+                    severity: Some(lsp_utils::to_lsp_severity(&e.level())),
                     source: Some("tremor-language-server".to_string()),
                     code: None,
                     related_information: None,

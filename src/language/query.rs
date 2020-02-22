@@ -49,7 +49,7 @@ impl Language for TremorQuery {
     }
 
     fn functions(&self, module_name: &str) -> Vec<String> {
-        if let Some(module) = self.aggr_registry.functions.get(module_name) {
+        if let Some(module) = self.aggr_registry.find_module(module_name) {
             let mut vec: Vec<String> = module.keys().cloned().collect();
             vec.sort();
             vec

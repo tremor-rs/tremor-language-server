@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use crate::language::prelude::*;
-use tremor_script::script::Script;
+use tremor_script::Script;
 
 pub const LANGUAGE_NAME: &str = "tremor-script";
 pub const FILE_EXTENSION: &str = "tremor";
@@ -36,13 +36,13 @@ impl Default for TremorScript {
 impl Language for TremorScript {
     fn parse_errors(&self, text: &str) -> Option<Vec<Error>> {
         match Script::parse(text, &self.registry) {
-            Ok(script) => Some(script.warnings.iter().map(|w| w.into()).collect()),
+            Ok(script) => Some(script.warnings().iter().map(|w| w.into()).collect()),
             Err(ref e) => Some(vec![e.into()]),
         }
     }
 
     fn functions(&self, module_name: &str) -> Vec<String> {
-        if let Some(module) = self.registry.functions.get(module_name) {
+        if let Some(module) = self.registry.find_module(module_name) {
             let mut vec: Vec<String> = module.keys().cloned().collect();
             vec.sort();
             vec

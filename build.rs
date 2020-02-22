@@ -26,7 +26,7 @@ use tremor_script::docs::{FunctionDoc, FunctionSignatureDoc};
 
 const LANGUAGES: &[&str] = &["tremor-script", "tremor-query"];
 
-const BASE_DOCS_DIR: &str = "../tremor-runtime/docs";
+const BASE_DOCS_DIR: &str = "../tremor-www-docs/docs";
 
 /*
 fn get_test_function_doc(language_name: &str) -> (String, FunctionDoc) {

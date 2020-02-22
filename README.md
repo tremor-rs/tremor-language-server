@@ -38,7 +38,7 @@ nice-to-have: rename all references
 
 ```sh
 cd ~/repos # should be the same folder that holds the main tremor-runtime repo (version >= 0.6)
-git clone git@github.com:wayfair-incubator/tremor-language-server.git
+git clone git@github.com:wayfair-tremor/tremor-language-server.git
 cd tremor-language-server
 
 # during development
@@ -53,20 +53,20 @@ cargo install --path . --root ~/ # make sure ~/bin/ is in your $PATH
 
 Follow instructions at:
 
-https://github.com/wayfair-incubator/tremor-vscode
+https://github.com/wayfair-tremor/tremor-vscode
 
 ### Vim setup
 
-Prerequisite: install https://github.com/wayfair-incubator/tremor-vim so that vim is aware of tremor filetypes (you also get syntax highlighting as a bonus).
+Prerequisite: install https://github.com/wayfair-tremor/tremor-vim so that vim is aware of tremor filetypes (you also get syntax highlighting as a bonus).
 
 For use with vim, we have a forked version of [ale](https://github.com/dense-analysis/ale) that can interact with the tremor language server:
 
-https://github.com/wayfair-incubator/ale/tree/tremor
+https://github.com/anupdhml/ale/tree/tremor
 
 Follow the plugin installation instructions. If you are using [vim-plug](https://github.com/junegunn/vim-plug), this will do:
 
 ```vim
-Plug 'wayfair-incubator/ale', { 'branch': 'tremor' }
+Plug 'anupdhml/ale', { 'branch': 'tremor' }
 ```
 
 Vim and ale settings that work nice with the tremor language server:

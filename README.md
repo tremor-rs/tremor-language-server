@@ -39,7 +39,6 @@ nice-to-have: rename all references
 ```sh
 cd ~/repos
 git clone git@github.com:wayfair-tremor/tremor-language-server.git
-git clone git@github.com:wayfair-tremor/tremor-www-docs.git # needed to generate data for function doc completions
 cd tremor-language-server
 
 # during development
@@ -182,7 +181,6 @@ If you prefer not to use ale, these vim plugins should also work well as the ser
 
 ## TODO
 
-* pull docs release file as part of build process (for function completions)
 * integration for emacs
 * support parallel edits for trickle and tremor files
 * improve debugging

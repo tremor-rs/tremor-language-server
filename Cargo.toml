@@ -1,6 +1,6 @@
 [package]
 name = "tremor-language-server"
-version = "0.1.0"
+version = "0.7.0"
 description = "Tremor Language Server (Trill)"
 authors = ["The Tremor Team"]
 edition = "2018"

@@ -36,16 +36,25 @@ nice-to-have: rename all references
 
 ## Quickstart
 
+For installation:
+
+```
+cargo install tremor-language-server
+```
+
+Make sure `.cargo/bin` is in your `$PATH` (or install it somewhere in your $PATH via cargo).
+
+If you are developing on the language server:
+
 ```sh
-cd ~/repos
 git clone git@github.com:wayfair-tremor/tremor-language-server.git
 cd tremor-language-server
 
-# during development
+# build and link somewhere in your path (for easy access/use in testing via editors)
 cargo build
 ln -s target/debug/tremor-language-server ~/bin/ # or anywhere in your $PATH
 
-# or install the release build
+# to install the release build
 cargo install --path . --root ~/ # make sure ~/bin/ is in your $PATH
 ```
 

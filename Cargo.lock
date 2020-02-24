@@ -1815,7 +1815,7 @@ dependencies = [
 
 [[package]]
 name = "tremor-language-server"
-version = "0.7.0"
+version = "0.7.3"
 dependencies = [
  "bincode 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.33.0 (registry+https://github.com/rust-lang/crates.io-index)",

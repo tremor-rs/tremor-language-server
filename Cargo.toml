@@ -26,7 +26,7 @@ halfbrown = "0.1"
 serde_json = "1.0.41"
 simd-json = { "version" = "0.2", "features" = ["allow-non-simd"] }
 tokio = "0.1.22"
-tower-lsp = "0.4"
+tower-lsp = "0.9"
 
 # tremor deps
 #tremor-script = { "path" = "../tremor-runtime/tremor-script" } # for local use

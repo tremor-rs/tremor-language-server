@@ -35,8 +35,9 @@ jobs:
       #   if: steps.cache-sccache.outputs.cache-hit != 'true'
       #   run: mkdir ~/sccache; cp ~/.cargo/bin/sccache ~/sccache
       - name: Run tests
-        # env:
+        env:
         #   RUSTC_WRAPPER: sccache
+          RUSTFLAGS: -C target-cpu=native
         run: cargo test --all
   code-coverage:
     runs-on: ubuntu-latest

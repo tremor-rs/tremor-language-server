@@ -67,8 +67,9 @@ jobs:
       - name: Install clippy
         run: rustup component add clippy
       - uses: actions-rs/clippy-check@v1
-        # env:
+        env:
         #   RUSTC_WRAPPER: sccache
+          RUSTFLAGS: -C target-cpu=native
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --all

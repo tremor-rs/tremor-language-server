@@ -24,7 +24,7 @@ jsonrpc-core = "14.0"
 
 halfbrown = "0.1"
 serde_json = "1.0.41"
-simd-json = { "version" = "0.2", "features" = ["allow-non-simd"] }
+simd-json = { "version" = "0.3", "features" = ["allow-non-simd"] }
 tokio = "0.1.22"
 tower-lsp = "0.4"
 

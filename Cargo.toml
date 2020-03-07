@@ -19,7 +19,7 @@ clap = "2.33.0"
 
 # need old version here for compatibility with tower-lsp
 #futures = "0.3.1"
-futures = "0.1.29"
+futures = "0.3.4"
 jsonrpc-core = "14.0"
 
 halfbrown = "0.1"

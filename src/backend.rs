@@ -17,7 +17,7 @@ use halfbrown::HashMap;
 use jsonrpc_core::Result;
 use serde_json::Value;
 use std::fs;
-use std::sync::Mutex;
+use tokio::sync::Mutex;
 use tower_lsp::lsp_types::*;
 use tower_lsp::{Client, LanguageServer};
 
@@ -44,9 +44,9 @@ impl Backend {
         }
     }
 
-    fn update(&self, uri: Url, text: &str) {
+    async fn update(&self, uri: Url, text: &str) {
         // TODO implement update as well. also remove unwrap
-        self.state.lock().unwrap().insert(
+        self.state.lock().await.insert(
             uri,
             DocumentState {
                 text: text.to_string(),
@@ -270,7 +270,7 @@ impl LanguageServer for Backend {
             // TODO pull this from params.text_document.text
             // TODO cleanup
             if let Ok(text) = fs::read_to_string(path) {
-                self.update(uri.clone(), &text);
+                self.update(uri.clone(), &text).await;
                 client.publish_diagnostics(uri, self.get_diagnostics(&text), None);
             }
         }
@@ -281,7 +281,7 @@ impl LanguageServer for Backend {
         // TODO cleanup
         let uri = params.text_document.uri;
         let text = &params.content_changes[0].text;
-        self.update(uri.clone(), text);
+        self.update(uri.clone(), text).await;
         client.publish_diagnostics(uri, self.get_diagnostics(text), None);
     }
 
@@ -297,7 +297,7 @@ impl LanguageServer for Backend {
         file_dbg("completion", "completion");
 
         // TODO remove unwraps
-        let state = self.state.lock().unwrap();
+        let state = self.state.lock().await;
         let doc = state
             .get(&params.text_document_position.text_document.uri)
             .unwrap();
@@ -312,7 +312,7 @@ impl LanguageServer for Backend {
         file_dbg("hover", "hover");
         // TODO remove unwraps
         // TODO bake state lookup in self
-        let state = self.state.lock().unwrap();
+        let state = self.state.lock().await;
         let doc = state.get(&params.text_document.uri).unwrap();
 
         let result = self

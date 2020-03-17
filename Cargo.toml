@@ -17,16 +17,12 @@ tremor-script = "0.7"
 bincode = "1.2.1"
 clap = "2.33.0"
 
-# need old version here for compatibility with tower-lsp
-#futures = "0.3.1"
-futures = "0.1.29"
-jsonrpc-core = "14.0"
-
 halfbrown = "0.1"
-serde_json = "1.0.41"
+jsonrpc-core = "14.0"
+serde_json = "1.0.48"
 simd-json = { "version" = "0.3", "features" = ["allow-non-simd"] }
-tokio = "0.1.22"
-tower-lsp = "0.4"
+tokio = { version = "0.2", features = ["io-std", "macros"] }
+tower-lsp = "0.9"
 
 # tremor deps
 #tremor-script = { "path" = "../tremor-runtime/tremor-script" } # for local use

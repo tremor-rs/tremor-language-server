@@ -13,14 +13,13 @@
 // limitations under the License.
 
 use crate::{language, lsp_utils};
-use futures::future;
 use halfbrown::HashMap;
-use jsonrpc_core::{BoxFuture, Result};
+use jsonrpc_core::Result;
 use serde_json::Value;
 use std::fs;
 use std::sync::Mutex;
 use tower_lsp::lsp_types::*;
-use tower_lsp::{LanguageServer, Printer};
+use tower_lsp::{Client, LanguageServer};
 
 // stores the latest state of the document as it changes (on edits)
 // TODO can add more fields here based on ast parsing
@@ -82,6 +81,7 @@ impl Backend {
                     source: Some("tremor-language-server".to_string()),
                     code: None,
                     related_information: None,
+                    tags: None,
                 });
             }
         }
@@ -169,16 +169,14 @@ impl Backend {
     }
 }
 
+#[tower_lsp::async_trait]
 impl LanguageServer for Backend {
-    type ShutdownFuture = BoxFuture<()>;
-    type SymbolFuture = BoxFuture<Option<Vec<SymbolInformation>>>;
-    type ExecuteFuture = BoxFuture<Option<Value>>;
-    type CompletionFuture = BoxFuture<Option<CompletionResponse>>;
-    type HoverFuture = BoxFuture<Option<Hover>>;
-    type HighlightFuture = BoxFuture<Option<Vec<DocumentHighlight>>>;
-
-    fn initialize(&self, _: &Printer, _: InitializeParams) -> Result<InitializeResult> {
+    fn initialize(&self, _: &Client, _: InitializeParams) -> Result<InitializeResult> {
         Ok(InitializeResult {
+            server_info: Some(ServerInfo {
+                name: "tremor-language-server".to_string(),
+                version: Some(env!("CARGO_PKG_VERSION").to_string()),
+            }),
             capabilities: ServerCapabilities {
                 code_action_provider: None,
                 code_lens_provider: None, /*Some(CodeLensOptions {
@@ -188,7 +186,9 @@ impl LanguageServer for Backend {
                 completion_provider: Some(CompletionOptions {
                     resolve_provider: None,
                     trigger_characters: Some(vec![":".to_string()]),
+                    work_done_progress_options: WorkDoneProgressOptions::default(),
                 }),
+                declaration_provider: None,
                 definition_provider: None,
                 document_formatting_provider: None,
                 document_highlight_provider: None,
@@ -197,6 +197,8 @@ impl LanguageServer for Backend {
                 document_range_formatting_provider: None,
                 document_symbol_provider: None,
                 execute_command_provider: None,
+                experimental: None,
+                selection_range_provider: None,
                 folding_range_provider: None,
                 hover_provider: Some(true),
                 implementation_provider: None,
@@ -220,39 +222,46 @@ impl LanguageServer for Backend {
         })
     }
 
-    fn initialized(&self, printer: &Printer, _: InitializedParams) {
+    async fn initialized(&self, client: &Client, _: InitializedParams) {
         file_dbg("initialized", "initialized");
         // TODO check this from clients
-        //printer.show_message(MessageType::Info, "Initialized Trill!");
-        printer.log_message(MessageType::Info, "Initialized Trill!");
+        //client.show_message(MessageType::Info, "Initialized Trill!");
+        client.log_message(MessageType::Info, "Initialized Trill!");
     }
 
     // TODO do more here (as appropriate). manadatory implementations for the trait
 
-    fn shutdown(&self) -> Self::ShutdownFuture {
+    async fn shutdown(&self) -> Result<()> {
         file_dbg("shutdown", "shutdown");
-        Box::new(future::ok(()))
+        Ok(())
     }
 
-    fn symbol(&self, _: WorkspaceSymbolParams) -> Self::SymbolFuture {
+    async fn symbol(&self, _: WorkspaceSymbolParams) -> Result<Option<Vec<SymbolInformation>>> {
         file_dbg("symbol", "symbol");
-        Box::new(future::ok(None))
+        Ok(None)
     }
 
-    fn document_highlight(&self, _: TextDocumentPositionParams) -> Self::HighlightFuture {
+    async fn document_highlight(
+        &self,
+        _: TextDocumentPositionParams,
+    ) -> Result<Option<Vec<DocumentHighlight>>> {
         file_dbg("document_highlight", "document_highlight");
-        Box::new(future::ok(None))
+        Ok(None)
     }
 
-    fn execute_command(&self, printer: &Printer, _: ExecuteCommandParams) -> Self::ExecuteFuture {
+    async fn execute_command(
+        &self,
+        client: &Client,
+        _: ExecuteCommandParams,
+    ) -> Result<Option<Value>> {
         file_dbg("execute", "execute");
-        printer.log_message(MessageType::Info, "executing command!");
-        Box::new(future::ok(None))
+        client.log_message(MessageType::Info, "executing command!");
+        Ok(None)
     }
 
     // backend state updates on text edits and reporting of diagnostics
 
-    fn did_open(&self, printer: &Printer, params: DidOpenTextDocumentParams) {
+    async fn did_open(&self, client: &Client, params: DidOpenTextDocumentParams) {
         file_dbg("didOpen", "didOpen");
         file_dbg("didOpen_language", &params.text_document.language_id);
 
@@ -262,29 +271,29 @@ impl LanguageServer for Backend {
             // TODO cleanup
             if let Ok(text) = fs::read_to_string(path) {
                 self.update(uri.clone(), &text);
-                printer.publish_diagnostics(uri, self.get_diagnostics(&text));
+                client.publish_diagnostics(uri, self.get_diagnostics(&text), None);
             }
         }
     }
 
-    fn did_change(&self, printer: &Printer, params: DidChangeTextDocumentParams) {
+    async fn did_change(&self, client: &Client, params: DidChangeTextDocumentParams) {
         file_dbg("didChange", "didChange");
         // TODO cleanup
         let uri = params.text_document.uri;
         let text = &params.content_changes[0].text;
         self.update(uri.clone(), text);
-        printer.publish_diagnostics(uri, self.get_diagnostics(text));
+        client.publish_diagnostics(uri, self.get_diagnostics(text), None);
     }
 
-    fn did_close(&self, printer: &Printer, params: DidCloseTextDocumentParams) {
+    async fn did_close(&self, client: &Client, params: DidCloseTextDocumentParams) {
         file_dbg("didClose", "didClose");
         // TODO can cleanup backend state here
-        printer.publish_diagnostics(params.text_document.uri, vec![]);
+        client.publish_diagnostics(params.text_document.uri, vec![], None);
     }
 
     // other lsp features
 
-    fn completion(&self, params: CompletionParams) -> Self::CompletionFuture {
+    async fn completion(&self, params: CompletionParams) -> Result<Option<CompletionResponse>> {
         file_dbg("completion", "completion");
 
         // TODO remove unwraps
@@ -293,12 +302,13 @@ impl LanguageServer for Backend {
             .get(&params.text_document_position.text_document.uri)
             .unwrap();
 
-        Box::new(future::ok(Some(CompletionResponse::Array(
-            self.get_completions(&doc.text, params.text_document_position.position),
+        Ok(Some(CompletionResponse::Array(self.get_completions(
+            &doc.text,
+            params.text_document_position.position,
         ))))
     }
 
-    fn hover(&self, params: TextDocumentPositionParams) -> Self::HoverFuture {
+    async fn hover(&self, params: TextDocumentPositionParams) -> Result<Option<Hover>> {
         file_dbg("hover", "hover");
         // TODO remove unwraps
         // TODO bake state lookup in self
@@ -312,7 +322,7 @@ impl LanguageServer for Backend {
                 range: None,
             });
 
-        Box::new(future::ok(result))
+        Ok(result)
     }
 }
 

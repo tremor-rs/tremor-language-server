@@ -20,7 +20,8 @@ use backend::Backend;
 use clap::{App, Arg};
 use tower_lsp::{LspService, Server};
 
-fn main() {
+#[tokio::main]
+async fn main() {
     backend::file_dbg("main", "main");
 
     let matches = App::new(env!("CARGO_PKG_NAME"))
@@ -49,12 +50,10 @@ fn main() {
             let stdout = tokio::io::stdout();
 
             let (service, messages) = LspService::new(Backend::new(language));
-            let handle = service.close_handle();
-            let server = Server::new(stdin, stdout)
+            Server::new(stdin, stdout)
                 .interleave(messages)
-                .serve(service);
-
-            tokio::run(handle.run_until_exit(server));
+                .serve(service)
+                .await;
         }
         None => {
             eprintln!("Error: unknown tremor language {}", language_name);

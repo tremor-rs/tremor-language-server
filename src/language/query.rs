@@ -14,6 +14,7 @@
 
 use crate::language::prelude::*;
 use crate::language::script::TremorScript;
+use tremor_script::path::ModulePath;
 use tremor_script::query::Query;
 
 pub const LANGUAGE_NAME: &str = "tremor-query";
@@ -41,27 +42,41 @@ impl Default for TremorQuery {
 }
 
 impl Language for TremorQuery {
-    fn parse_errors(&self, text: &str) -> Option<Vec<Error>> {
-        match Query::parse(text, &self.registry, &self.aggr_registry) {
+    fn parse_errors(&self, uri: &Url, text: &str) -> Option<Vec<Error>> {
+        // FIXME .unwrap() should we path in something here?
+        let mut m = ModulePath::load();
+        let file = uri.as_str().replace("file://", "");
+        let p = Path::new(&file);
+        m.add(
+            p.ancestors()
+                .skip(1)
+                .next()
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .to_string(),
+        );
+        let cus = vec![];
+        match Query::parse(&m, "<file>", text, cus, &self.registry, &self.aggr_registry) {
             Ok(query) => Some(query.warnings.iter().map(|w| w.into()).collect()),
             Err(ref e) => Some(vec![e.into()]),
         }
     }
 
-    fn functions(&self, module_name: &str) -> Vec<String> {
+    fn functions(&self, uri: &Url, module_name: &str) -> Vec<String> {
         if let Some(module) = self.aggr_registry.find_module(module_name) {
             let mut vec: Vec<String> = module.keys().cloned().collect();
             vec.sort();
             vec
         } else {
             // no agg functions found so try for script functions
-            self.tremor_script.functions(module_name)
+            self.tremor_script.functions(uri, module_name)
         }
     }
 
-    fn function_doc(&self, full_function_name: &str) -> Option<&FunctionDoc> {
+    fn function_doc(&self, uri: &Url, full_function_name: &str) -> Option<&FunctionDoc> {
         self.all_function_docs
             .get(full_function_name)
-            .or_else(|| self.tremor_script.function_doc(full_function_name))
+            .or_else(|| self.tremor_script.function_doc(uri, full_function_name))
     }
 }

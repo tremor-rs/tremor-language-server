@@ -1585,7 +1585,7 @@ dependencies = [
 
 [[package]]
 name = "tower-lsp"
-version = "0.10.0"
+version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "async-trait 0.1.27 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1639,7 +1639,7 @@ dependencies = [
  "serde_json 1.0.51 (registry+https://github.com/rust-lang/crates.io-index)",
  "simd-json 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio 0.2.18 (registry+https://github.com/rust-lang/crates.io-index)",
- "tower-lsp 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "tower-lsp 0.10.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "tremor-script 0.7.7 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -2006,7 +2006,7 @@ dependencies = [
 "checksum tokio-macros 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)" = "f0c3acc6aa564495a0f2e1d59fab677cd7f81a19994cfc7f3ad0e64301560389"
 "checksum tokio-util 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)" = "be8242891f2b6cbef26a2d7e8605133c2c554cd35b3e4948ea892d6d68436499"
 "checksum toml 0.5.6 (registry+https://github.com/rust-lang/crates.io-index)" = "ffc92d160b1eef40665be3a05630d003936a3bc7da7421277846c2613e92c71a"
-"checksum tower-lsp 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)" = "095ef93aa94b3e0cc525771ab0827803402a9e03d46243cdd0024f2dc5e5715e"
+"checksum tower-lsp 0.10.1 (registry+https://github.com/rust-lang/crates.io-index)" = "91ae01ecdf682799b080b357f0f0e6d5e8ae1bf27b5a0fdcff9c66a88bfdb9ec"
 "checksum tower-service 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "e987b6bf443f4b5b3b6f38704195592cca41c5bb7aedd3c3693c7081f8289860"
 "checksum tremor-influx 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "478fd817afe86e2a7f8694b53f078ce882eb48c2e496279c0b46f834515384c0"
 "checksum tremor-kv 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "4b3a702a97b05880e71d8380b886fe244bd09ca30f775ea2157bdc2d363487cf"

@@ -151,7 +151,12 @@ impl Backend {
         vec![]
     }
 
-    fn get_hover_content(&self, uri: &Url, text: &str, position: Position) -> Option<MarkupContent> {
+    fn get_hover_content(
+        &self,
+        uri: &Url,
+        text: &str,
+        position: Position,
+    ) -> Option<MarkupContent> {
         // TODO merge the repeated tokenize operation with get_completions()?
         if let Some(tokens) = self.language.tokenize(uri, text) {
             if let Some(token) = lsp_utils::get_token(tokens, position) {
@@ -302,7 +307,7 @@ impl LanguageServer for Backend {
         let doc = state
             .get(&params.text_document_position.text_document.uri)
             .unwrap();
-            let uri = params.text_document_position.text_document.uri;
+        let uri = params.text_document_position.text_document.uri;
 
         Ok(Some(CompletionResponse::Array(self.get_completions(
             &uri,

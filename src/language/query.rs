@@ -47,14 +47,7 @@ impl Language for TremorQuery {
         let mut m = ModulePath::load();
         let file = uri.as_str().replace("file://", "");
         let p = Path::new(&file);
-        m.add(
-            p.ancestors()
-                .nth(2)
-                .unwrap()
-                .to_str()
-                .unwrap()
-                .to_string(),
-        );
+        m.add(p.ancestors().nth(2).unwrap().to_str().unwrap().to_string());
         let cus = vec![];
         match Query::parse(&m, "<file>", text, cus, &self.registry, &self.aggr_registry) {
             Ok(query) => Some(query.warnings.iter().map(|w| w.into()).collect()),

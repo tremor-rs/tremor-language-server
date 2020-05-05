@@ -83,7 +83,9 @@ fn parse_raw_function_docs(language_name: &str) -> HashMap<String, FunctionDoc> 
             let mut buffered_reader = BufReader::new(module_doc_file);
 
             let mut module_doc_contents = String::new();
-            buffered_reader.read_to_string(&mut module_doc_contents).unwrap();
+            buffered_reader
+                .read_to_string(&mut module_doc_contents)
+                .unwrap();
 
             // test
             // TODO remove

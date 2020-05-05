@@ -41,14 +41,7 @@ impl Language for TremorScript {
         let mut m = ModulePath::load();
         let file = uri.as_str().replace("file://", "");
         let p = Path::new(&file);
-        m.add(
-            p.ancestors()
-                .nth(2)
-                .unwrap()
-                .to_str()
-                .unwrap()
-                .to_string(),
-        );
+        m.add(p.ancestors().nth(2).unwrap().to_str().unwrap().to_string());
         let text = text.to_string();
         match Script::parse(&m, "<file>", text, &self.registry) {
             Ok(script) => Some(script.warnings().iter().map(|w| w.into()).collect()),

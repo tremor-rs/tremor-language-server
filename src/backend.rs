@@ -343,5 +343,5 @@ pub fn file_dbg(name: &str, content: &str) {
     let path = format!("/tmp/tremor_{}", name);
 
     let mut output = File::create(path).unwrap();
-    write!(output, "{}", content);
+    write!(output, "{}", content).unwrap();
 }

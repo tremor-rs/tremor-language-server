@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use bincode;
 use regex::Regex;
 use std::borrow::Borrow;
 // used instead of halfbrown::Hashmap because bincode can't deserialize that
@@ -84,7 +83,7 @@ fn parse_raw_function_docs(language_name: &str) -> HashMap<String, FunctionDoc> 
             let mut buffered_reader = BufReader::new(module_doc_file);
 
             let mut module_doc_contents = String::new();
-            buffered_reader.read_to_string(&mut module_doc_contents);
+            buffered_reader.read_to_string(&mut module_doc_contents).unwrap();
 
             // test
             // TODO remove
@@ -116,7 +115,7 @@ fn to_function_doc(raw_doc: &str) -> FunctionDoc {
             println!("Found function: {}", &caps[0]);
             FunctionSignatureDoc {
                 full_name: caps[1].trim().to_string(),
-                args: caps[2].split(",").map(|s| s.trim().to_string()).collect(),
+                args: caps[2].split(',').map(|s| s.trim().to_string()).collect(),
                 result: caps[3].trim().to_string(),
             }
         }
@@ -179,7 +178,7 @@ where
     );
     let ret = Command::new(cmd).current_dir(dir).args(args).status();
     match ret.map(|status| (status.success(), status.code())) {
-        Ok((true, _)) => return,
+        Ok((true, _)) => (),
         Ok((false, Some(c))) => panic!("Command failed with error code {}", c),
         Ok((false, None)) => panic!("Command got killed"),
         Err(e) => panic!("Command failed with error: {}", e),

@@ -49,8 +49,7 @@ impl Language for TremorQuery {
         let p = Path::new(&file);
         m.add(
             p.ancestors()
-                .skip(1)
-                .next()
+                .nth(2)
                 .unwrap()
                 .to_str()
                 .unwrap()

@@ -36,7 +36,6 @@ impl Default for TremorScript {
 
 impl Language for TremorScript {
     fn parse_errors(&self, uri: &Url, text: &str) -> Option<Vec<Error>> {
-        dbg!(uri);
         // FIXME .unwrap() should we path in something here?
         let mut m = ModulePath::load();
         let file = uri.as_str().replace("file://", "");
@@ -50,7 +49,6 @@ impl Language for TremorScript {
     }
 
     fn functions(&self, uri: &Url, module_name: &str) -> Vec<String> {
-        dbg!(uri);
         if let Some(module) = self.registry.find_module(module_name) {
             let mut vec: Vec<String> = module.keys().cloned().collect();
             vec.sort();
@@ -61,7 +59,6 @@ impl Language for TremorScript {
     }
 
     fn function_doc(&self, uri: &Url, full_function_name: &str) -> Option<&FunctionDoc> {
-        dbg!(uri);
         self.all_function_docs.get(full_function_name)
     }
 }

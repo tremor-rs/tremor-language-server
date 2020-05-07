@@ -176,7 +176,7 @@ impl Backend {
 
 #[tower_lsp::async_trait]
 impl LanguageServer for Backend {
-    fn initialize(&self, _: &Client, _: InitializeParams) -> Result<InitializeResult> {
+    async fn initialize(&self, _: &Client, _: InitializeParams) -> Result<InitializeResult> {
         Ok(InitializeResult {
             server_info: Some(ServerInfo {
                 name: "tremor-language-server".to_string(),
@@ -248,7 +248,7 @@ impl LanguageServer for Backend {
 
     async fn document_highlight(
         &self,
-        _: TextDocumentPositionParams,
+        _: DocumentHighlightParams,
     ) -> Result<Option<Vec<DocumentHighlight>>> {
         file_dbg("document_highlight", "document_highlight");
         Ok(None)
@@ -316,16 +316,20 @@ impl LanguageServer for Backend {
         ))))
     }
 
-    async fn hover(&self, params: TextDocumentPositionParams) -> Result<Option<Hover>> {
+    async fn hover(&self, params: HoverParams) -> Result<Option<Hover>> {
         file_dbg("hover", "hover");
         // TODO remove unwraps
         // TODO bake state lookup in self
         let state = self.state.lock().await;
-        let doc = state.get(&params.text_document.uri).unwrap();
-        let uri = params.text_document.uri;
+        let uri = params.text_document_position_params.text_document.uri;
+        let doc = state.get(&uri).unwrap();
 
         let result = self
-            .get_hover_content(&uri, &doc.text, params.position)
+            .get_hover_content(
+                &uri,
+                &doc.text,
+                params.text_document_position_params.position,
+            )
             .map(|hover_content| Hover {
                 contents: HoverContents::Markup(hover_content),
                 range: None,

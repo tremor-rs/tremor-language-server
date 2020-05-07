@@ -48,7 +48,7 @@ impl Language for TremorScript {
         }
     }
 
-    fn functions(&self, uri: &Url, module_name: &str) -> Vec<String> {
+    fn functions(&self, _uri: &Url, module_name: &str) -> Vec<String> {
         if let Some(module) = self.registry.find_module(module_name) {
             let mut vec: Vec<String> = module.keys().cloned().collect();
             vec.sort();
@@ -58,7 +58,7 @@ impl Language for TremorScript {
         }
     }
 
-    fn function_doc(&self, uri: &Url, full_function_name: &str) -> Option<&FunctionDoc> {
+    fn function_doc(&self, _uri: &Url, full_function_name: &str) -> Option<&FunctionDoc> {
         self.all_function_docs.get(full_function_name)
     }
 }

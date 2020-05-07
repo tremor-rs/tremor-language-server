@@ -29,6 +29,14 @@ async fn main() {
         .about(env!("CARGO_PKG_DESCRIPTION"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .arg(
+            Arg::with_name("path")
+                .help("TREMOR_PATH to set")
+                .short("p")
+                .long("path")
+                .takes_value(true)
+                .default_value("")
+        )
+        .arg(
             Arg::with_name("language")
                 .help("Tremor language to support")
                 .short("l")
@@ -39,10 +47,17 @@ async fn main() {
         )
         .get_matches();
 
+    let path = matches
+        .value_of("path")
+        // this is safe because we provide a default value for this arg above
+        .unwrap_or_else(|| unreachable!());
+
     let language_name = matches
         .value_of("language")
         // this is safe because we provide a default value for this arg above
         .unwrap_or_else(|| unreachable!());
+
+    std::env::set_var("TREMOR_PATH", path);
 
     match language::lookup(language_name) {
         Some(language) => {

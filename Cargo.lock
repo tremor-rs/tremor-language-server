@@ -1829,8 +1829,9 @@ dependencies = [
 
 [[package]]
 name = "tremor-script"
-version = "0.8.0"
-source = "git+https://github.com/wayfair-tremor/tremor-runtime?branch=trill_08_updates#913dd1d6db672b1d3b2caab51f4a51d14b0dfde0"
+version = "0.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e5c73b3d93be6b6d6e6a9510927a7dc28f28b5632f04a04e5620d19825e00a4c"
 dependencies = [
  "base64 0.12.1",
  "chrono",

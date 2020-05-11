@@ -13,6 +13,8 @@
 // limitations under the License.
 
 pub use std::collections::HashMap;
+pub use std::path::Path;
+pub use tower_lsp::lsp_types::Url;
 pub use tremor_script::docs::FunctionDoc;
 pub use tremor_script::highlighter::Error;
 pub use tremor_script::registry;
@@ -20,17 +22,17 @@ pub use tremor_script::registry;
 pub use tremor_script::lexer::{Token, TokenSpan, Tokenizer};
 
 pub trait Language: Send + Sync {
-    fn parse_errors(&self, text: &str) -> Option<Vec<Error>>;
+    fn parse_errors(&self, uri: &Url, text: &str) -> Option<Vec<Error>>;
 
-    fn functions(&self, _module_name: &str) -> Vec<String> {
+    fn functions(&self, _uri: &Url, _module_name: &str) -> Vec<String> {
         vec![]
     }
 
-    fn function_doc(&self, _full_function_name: &str) -> Option<&FunctionDoc> {
+    fn function_doc(&self, _uri: &Url, _full_function_name: &str) -> Option<&FunctionDoc> {
         None
     }
 
-    fn tokenize<'input>(&self, text: &'input str) -> Option<Vec<TokenSpan<'input>>> {
+    fn tokenize<'input>(&self, _uri: &Url, text: &'input str) -> Option<Vec<TokenSpan<'input>>> {
         match Tokenizer::new(text).collect() {
             Ok(tokens) => Some(tokens),
             // TODO log error, or pass on as result

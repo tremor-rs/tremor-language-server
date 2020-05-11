@@ -37,12 +37,36 @@ async fn main() {
                 .possible_values(language::LANGUAGE_NAMES)
                 .default_value(language::DEFAULT_LANGUAGE_NAME),
         )
+        .arg(
+            Arg::with_name("path")
+                .help("TREMOR_PATH to set")
+                .short("p")
+                .long("path")
+                .takes_value(true)
+                .default_value(""),
+        )
         .get_matches();
 
     let language_name = matches
         .value_of("language")
         // this is safe because we provide a default value for this arg above
         .unwrap_or_else(|| unreachable!());
+
+    let path = matches
+        .value_of("path")
+        // this is safe because we provide a default value for this arg above
+        .unwrap_or_else(|| unreachable!());
+
+    if !path.is_empty() {
+        std::env::set_var(
+            "TREMOR_PATH",
+            match std::env::var("TREMOR_PATH") {
+                // append to existing path if it's already set
+                Ok(p) => format!("{}:{}", p, path),
+                Err(_) => path.to_string(),
+            },
+        );
+    }
 
     match language::lookup(language_name) {
         Some(language) => {

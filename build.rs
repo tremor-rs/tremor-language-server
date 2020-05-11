@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use bincode;
 use regex::Regex;
 use std::borrow::Borrow;
 // used instead of halfbrown::Hashmap because bincode can't deserialize that
@@ -23,12 +22,19 @@ use std::fs::{self, File};
 use std::io::{BufReader, BufWriter, Read};
 use std::path::{Path, PathBuf};
 use std::process::{self, Command};
+use walkdir::WalkDir;
 
+use tremor_script::ast::FnDoc;
+// TODO get rid of this once we can switch to FnDoc for aggregate functions too
 use tremor_script::docs::{FunctionDoc, FunctionSignatureDoc};
+use tremor_script::path::ModulePath;
+use tremor_script::{registry, Script};
 
 const LANGUAGES: &[&str] = &["tremor-script", "tremor-query"];
 
 const BASE_DOCS_DIR: &str = "tremor-www-docs/docs";
+
+const TREMOR_STDLIB_DIR: &str = "tremor-runtime/tremor-script/lib";
 
 /*
 fn get_test_function_doc(language_name: &str) -> (String, FunctionDoc) {
@@ -59,6 +65,75 @@ fn get_test_function_doc(language_name: &str) -> (String, FunctionDoc) {
 }
 */
 
+fn parse_tremor_stdlib() -> HashMap<String, FunctionDoc> {
+    let mut function_docs: HashMap<String, FunctionDoc> = HashMap::new();
+
+    for entry in WalkDir::new(TREMOR_STDLIB_DIR) {
+        let entry = entry.unwrap();
+        let path = entry.path();
+
+        if path.is_file() {
+            println!("Parsing tremor file: {}", path.display());
+
+            let module_file = File::open(Path::new(&path)).unwrap();
+            let mut buffered_reader = BufReader::new(module_file);
+
+            let mut module_text = String::new();
+            buffered_reader.read_to_string(&mut module_text).unwrap();
+
+            let module_path = ModulePath::load();
+            let registry = registry::registry();
+
+            match Script::parse(
+                &module_path,
+                &path.to_string_lossy(),
+                module_text,
+                &registry,
+            ) {
+                Ok(script) => {
+                    let docs = script.docs();
+
+                    // module name here is "self" always so can't use it right now
+                    // TODO fix this?
+                    //if let Some(module_doc) = &docs.module {
+                    //    println!("Found module: {}", module_doc.name);
+                    //}
+
+                    // filenames match module name here
+                    let module_name = path.file_stem().unwrap().to_string_lossy();
+                    println!("Found module: {}", module_name);
+
+                    for fndoc in &docs.fns {
+                        let function_doc = fndoc_to_function_doc(fndoc, &module_name);
+                        println!("Found function: {}", function_doc.signature);
+
+                        function_docs
+                            .insert(function_doc.signature.full_name.clone(), function_doc);
+                    }
+                }
+                Err(e) => eprintln!("Error parsing file {}: {:?}", path.display(), e),
+            }
+        }
+    }
+
+    function_docs
+}
+
+fn fndoc_to_function_doc(fndoc: &FnDoc, module_name: &str) -> FunctionDoc {
+    let signature_doc = FunctionSignatureDoc {
+        full_name: format!("{}::{}", module_name, fndoc.name),
+        args: fndoc.args.iter().map(|s| s.to_string()).collect(),
+        result: String::new(), // TODO adopt comment convention to represent result type
+    };
+
+    FunctionDoc {
+        signature: signature_doc,
+        description: fndoc.doc.as_ref().unwrap_or(&String::new()).to_string(),
+        summary: None,  // TODO add first line?
+        examples: None, // TODO parse out stuff in code blocks
+    }
+}
+
 fn parse_raw_function_docs(language_name: &str) -> HashMap<String, FunctionDoc> {
     let mut function_docs: HashMap<String, FunctionDoc> = HashMap::new();
 
@@ -76,7 +151,7 @@ fn parse_raw_function_docs(language_name: &str) -> HashMap<String, FunctionDoc> 
         //dbg!(path.ends_with("md"));
         //if path.is_file() && path.ends_with(".md") {
         if path.is_file() && path.to_str().unwrap().ends_with(".md") {
-            println!("Parsing markdown file: {:?}", path);
+            println!("Parsing markdown file: {}", path.display());
 
             let module_doc_file = File::open(Path::new(&path)).unwrap();
             //File::open(Path::new(&function_docs_path).join(module_doc_filename)).unwrap();
@@ -84,7 +159,9 @@ fn parse_raw_function_docs(language_name: &str) -> HashMap<String, FunctionDoc> 
             let mut buffered_reader = BufReader::new(module_doc_file);
 
             let mut module_doc_contents = String::new();
-            buffered_reader.read_to_string(&mut module_doc_contents);
+            buffered_reader
+                .read_to_string(&mut module_doc_contents)
+                .unwrap();
 
             // test
             // TODO remove
@@ -116,7 +193,7 @@ fn to_function_doc(raw_doc: &str) -> FunctionDoc {
             println!("Found function: {}", &caps[0]);
             FunctionSignatureDoc {
                 full_name: caps[1].trim().to_string(),
-                args: caps[2].split(",").map(|s| s.trim().to_string()).collect(),
+                args: caps[2].split(',').map(|s| s.trim().to_string()).collect(),
                 result: caps[3].trim().to_string(),
             }
         }
@@ -149,7 +226,13 @@ fn bindump_function_docs(language_name: &str, dest_dir: &str) {
         language_name,
         dest_path.to_str().unwrap()
     );
-    bincode::serialize_into(&mut f, &parse_raw_function_docs(language_name)).unwrap();
+
+    let function_docs = match language_name {
+        "tremor-script" => parse_tremor_stdlib(),
+        _ => parse_raw_function_docs(language_name),
+    };
+
+    bincode::serialize_into(&mut f, &function_docs).unwrap();
 }
 
 // lifted from https://github.com/fede1024/rust-rdkafka/blob/v0.23.0/rdkafka-sys/build.rs#L7
@@ -179,7 +262,7 @@ where
     );
     let ret = Command::new(cmd).current_dir(dir).args(args).status();
     match ret.map(|status| (status.success(), status.code())) {
-        Ok((true, _)) => return,
+        Ok((true, _)) => (),
         Ok((false, Some(c))) => panic!("Command failed with error code {}", c),
         Ok((false, None)) => panic!("Command got killed"),
         Err(e) => panic!("Command failed with error: {}", e),
@@ -190,7 +273,9 @@ fn main() {
     // Tremor docs repo is needed right now for generating the function documentation
     // as well as module completion items. Once we store those items in a structured
     // way as part of the tremor-script codebase, this won't be needed.
-    if !Path::new("tremor-www-docs/LICENSE").exists() {
+    if !(Path::new("tremor-www-docs/LICENSE").exists()
+        && Path::new("tremor-runtime/LICENSE").exists())
+    {
         eprintln!("Setting up docs submodule...");
         run_command_or_fail(".", "git", &["submodule", "update", "--init"]);
     }

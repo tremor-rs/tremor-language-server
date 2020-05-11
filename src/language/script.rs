@@ -13,6 +13,7 @@
 // limitations under the License.
 
 use crate::language::prelude::*;
+use tremor_script::path::ModulePath;
 use tremor_script::Script;
 
 pub const LANGUAGE_NAME: &str = "tremor-script";
@@ -34,14 +35,20 @@ impl Default for TremorScript {
 }
 
 impl Language for TremorScript {
-    fn parse_errors(&self, text: &str) -> Option<Vec<Error>> {
-        match Script::parse(text, &self.registry) {
+    fn parse_errors(&self, uri: &Url, text: &str) -> Option<Vec<Error>> {
+        // FIXME .unwrap() should we path in something here?
+        let mut m = ModulePath::load();
+        let file = uri.as_str().replace("file://", "");
+        let p = Path::new(&file);
+        m.add(p.ancestors().nth(2).unwrap().to_str().unwrap().to_string());
+        let text = text.to_string();
+        match Script::parse(&m, "<file>", text, &self.registry) {
             Ok(script) => Some(script.warnings().iter().map(|w| w.into()).collect()),
             Err(ref e) => Some(vec![e.into()]),
         }
     }
 
-    fn functions(&self, module_name: &str) -> Vec<String> {
+    fn functions(&self, _uri: &Url, module_name: &str) -> Vec<String> {
         if let Some(module) = self.registry.find_module(module_name) {
             let mut vec: Vec<String> = module.keys().cloned().collect();
             vec.sort();
@@ -51,7 +58,7 @@ impl Language for TremorScript {
         }
     }
 
-    fn function_doc(&self, full_function_name: &str) -> Option<&FunctionDoc> {
+    fn function_doc(&self, _uri: &Url, full_function_name: &str) -> Option<&FunctionDoc> {
         self.all_function_docs.get(full_function_name)
     }
 }

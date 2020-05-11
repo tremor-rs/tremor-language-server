@@ -45,7 +45,7 @@ impl Backend {
     }
 
     async fn update(&self, uri: Url, text: &str) {
-        // TODO implement update as well. also remove unwrap
+        // TODO implement update as well. also remove unwraps
         self.state.lock().await.insert(
             uri,
             DocumentState {
@@ -56,12 +56,12 @@ impl Backend {
 
     // LSP helper functions
 
-    fn get_diagnostics(&self, text: &str) -> Vec<Diagnostic> {
+    fn get_diagnostics(&self, uri: &Url, text: &str) -> Vec<Diagnostic> {
         file_dbg("get_diagnostics", text);
 
         let mut diagnostics = Vec::new();
 
-        if let Some(errors) = self.language.parse_errors(text) {
+        if let Some(errors) = self.language.parse_errors(uri, text) {
             for e in &errors {
                 let range = Range {
                     start: lsp_utils::to_lsp_position(&e.start()),
@@ -89,13 +89,13 @@ impl Backend {
         diagnostics
     }
 
-    fn get_completions(&self, text: &str, position: Position) -> Vec<CompletionItem> {
+    fn get_completions(&self, uri: &Url, text: &str, position: Position) -> Vec<CompletionItem> {
         let pre_position = Position {
             line: position.line,
             character: position.character - 1,
         };
 
-        if let Some(tokens) = self.language.tokenize(text) {
+        if let Some(tokens) = self.language.tokenize(uri, text) {
             if let Some(token) = lsp_utils::get_token(tokens, pre_position) {
                 file_dbg("get_completions_token", &token);
                 // TODO eliminate the need for this by improving get_token()
@@ -105,7 +105,7 @@ impl Backend {
                     file_dbg("get_completions_module_name", module_name);
                     return self
                         .language
-                        .functions(module_name)
+                        .functions(uri, module_name)
                         .iter()
                         .map(|function_name| {
                             let mut detail = None;
@@ -113,7 +113,7 @@ impl Backend {
                             let mut insert_text = None;
                             if let Some(function_doc) = self
                                 .language
-                                .function_doc(&format!("{}::{}", module_name, function_name))
+                                .function_doc(uri, &format!("{}::{}", module_name, function_name))
                             {
                                 file_dbg("get_completions_function_doc", &function_doc.description);
                                 detail = Some(function_doc.signature.to_string());
@@ -151,12 +151,17 @@ impl Backend {
         vec![]
     }
 
-    fn get_hover_content(&self, text: &str, position: Position) -> Option<MarkupContent> {
+    fn get_hover_content(
+        &self,
+        uri: &Url,
+        text: &str,
+        position: Position,
+    ) -> Option<MarkupContent> {
         // TODO merge the repeated tokenize operation with get_completions()?
-        if let Some(tokens) = self.language.tokenize(text) {
+        if let Some(tokens) = self.language.tokenize(uri, text) {
             if let Some(token) = lsp_utils::get_token(tokens, position) {
                 file_dbg("get_hover_content_token", &token);
-                if let Some(function_doc) = self.language.function_doc(&token) {
+                if let Some(function_doc) = self.language.function_doc(uri, &token) {
                     file_dbg("get_hover_content_function_doc", &function_doc.description);
                     return Some(MarkupContent {
                         kind: MarkupKind::Markdown,
@@ -271,7 +276,8 @@ impl LanguageServer for Backend {
             // TODO cleanup
             if let Ok(text) = fs::read_to_string(path) {
                 self.update(uri.clone(), &text).await;
-                client.publish_diagnostics(uri, self.get_diagnostics(&text), None);
+                let d = self.get_diagnostics(&uri, &text);
+                client.publish_diagnostics(uri, d, None);
             }
         }
     }
@@ -282,7 +288,7 @@ impl LanguageServer for Backend {
         let uri = params.text_document.uri;
         let text = &params.content_changes[0].text;
         self.update(uri.clone(), text).await;
-        client.publish_diagnostics(uri, self.get_diagnostics(text), None);
+        client.publish_diagnostics(uri.clone(), self.get_diagnostics(&uri, text), None);
     }
 
     async fn did_close(&self, client: &Client, params: DidCloseTextDocumentParams) {
@@ -301,8 +307,10 @@ impl LanguageServer for Backend {
         let doc = state
             .get(&params.text_document_position.text_document.uri)
             .unwrap();
+        let uri = params.text_document_position.text_document.uri;
 
         Ok(Some(CompletionResponse::Array(self.get_completions(
+            &uri,
             &doc.text,
             params.text_document_position.position,
         ))))
@@ -313,12 +321,15 @@ impl LanguageServer for Backend {
         // TODO remove unwraps
         // TODO bake state lookup in self
         let state = self.state.lock().await;
-        let doc = state
-            .get(&params.text_document_position_params.text_document.uri)
-            .unwrap();
+        let uri = params.text_document_position_params.text_document.uri;
+        let doc = state.get(&uri).unwrap();
 
         let result = self
-            .get_hover_content(&doc.text, params.text_document_position_params.position)
+            .get_hover_content(
+                &uri,
+                &doc.text,
+                params.text_document_position_params.position,
+            )
             .map(|hover_content| Hover {
                 contents: HoverContents::Markup(hover_content),
                 range: None,
@@ -336,5 +347,5 @@ pub fn file_dbg(name: &str, content: &str) {
     let path = format!("/tmp/tremor_{}", name);
 
     let mut output = File::create(path).unwrap();
-    write!(output, "{}", content);
+    write!(output, "{}", content).unwrap();
 }

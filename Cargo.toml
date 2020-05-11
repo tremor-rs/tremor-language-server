@@ -10,7 +10,7 @@ license = "Apache-2.0"
 bincode = "1.2.1"
 regex = "1.3"
 #tremor-script = { "path" = "../tremor-runtime/tremor-script" } # for local use
-tremor-script = "0.7"
+tremor-script = "0.8"
 
 [dependencies]
 
@@ -25,4 +25,4 @@ tower-lsp = "0.11"
 
 # tremor deps
 #tremor-script = { "path" = "../tremor-runtime/tremor-script" } # for local use
-tremor-script = "0.7"
+tremor-script = "0.8"

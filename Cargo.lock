@@ -315,11 +315,21 @@ dependencies = [
 
 [[package]]
 name = "codespan"
-version = "0.8.0"
+version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "52899426b69706219a1aaee2e95868fd01a0bd8006bb163f069578a0af5b5bb2"
+checksum = "8c7ddb4fbbadc95403d087ced01b50729650c0fba279e3711c6d4f94c844c449"
 dependencies = [
- "unicode-segmentation",
+ "codespan-reporting",
+]
+
+[[package]]
+name = "codespan-reporting"
+version = "0.9.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d5680df8512a0e825b9edc41b619ec88b367644d394b4d862a04b4d6387c65da"
+dependencies = [
+ "termcolor",
+ "unicode-width",
 ]
 
 [[package]]
@@ -828,7 +838,7 @@ dependencies = [
  "docopt",
  "ena",
  "itertools",
- "lalrpop-util 0.18.1",
+ "lalrpop-util",
  "petgraph",
  "regex",
  "regex-syntax",
@@ -839,12 +849,6 @@ dependencies = [
  "term",
  "unicode-xid 0.2.0",
 ]
-
-[[package]]
-name = "lalrpop-util"
-version = "0.17.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c277d18683b36349ab5cd030158b54856fca6bb2d5dc5263b06288f486958b7c"
 
 [[package]]
 name = "lalrpop-util"
@@ -908,15 +912,6 @@ checksum = "f2b111a074963af1d37a139918ac6d49ad1d0d5e47f72fd55388619691a7d753"
 dependencies = [
  "cc",
  "winapi",
-]
-
-[[package]]
-name = "libmath"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dfd3416934a853ae80d5c3b006f632dfcbaf320300c5167e88a469e9ac214502"
-dependencies = [
- "rand 0.3.23",
 ]
 
 [[package]]
@@ -1215,29 +1210,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4c1f4b0efa5fc5e8ceb705136bfee52cfdb6a4e3509f770b478cd6ed434232a7"
 dependencies = [
  "proc-macro2 1.0.12",
-]
-
-[[package]]
-name = "rand"
-version = "0.3.23"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "64ac302d8f83c0c1974bf758f6b041c6c8ada916fbb44a609158ca8b064cc76c"
-dependencies = [
- "libc",
- "rand 0.4.6",
-]
-
-[[package]]
-name = "rand"
-version = "0.4.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "552840b97013b1a26992c11eac34bdd778e464601a4c2054b5f0bff7c6761293"
-dependencies = [
- "fuchsia-cprng",
- "libc",
- "rand_core 0.3.1",
- "rdrand",
- "winapi",
 ]
 
 [[package]]
@@ -1847,11 +1819,11 @@ dependencies = [
 
 [[package]]
 name = "tremor-script"
-version = "0.7.7"
+version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a03beb98bc0e9b6fdf6df63485a2a8d767ffae0040795af60c16e38936399d86"
+checksum = "e5c73b3d93be6b6d6e6a9510927a7dc28f28b5632f04a04e5620d19825e00a4c"
 dependencies = [
- "base64 0.11.0",
+ "base64 0.12.1",
  "chrono",
  "cidr-utils",
  "clap",
@@ -1867,15 +1839,14 @@ dependencies = [
  "hostname",
  "jumphash",
  "lalrpop",
- "lalrpop-util 0.17.2",
- "libmath",
+ "lalrpop-util",
  "matches",
+ "percent-encoding",
  "rand 0.7.3",
  "regex",
  "rental",
  "serde",
  "serde_derive",
- "serde_json",
  "simd-json",
  "sketches-ddsketch",
  "termcolor",
@@ -1909,12 +1880,6 @@ checksum = "5479532badd04e128284890390c1e876ef7a993d0570b3597ae43dfa1d59afa4"
 dependencies = [
  "smallvec",
 ]
-
-[[package]]
-name = "unicode-segmentation"
-version = "1.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e83e153d1053cbb5a118eeff7fd5be06ed99153f00dbcd8ae310c5fb2b22edc0"
 
 [[package]]
 name = "unicode-width"

@@ -1,6 +1,3 @@
 [submodule "tremor-www-docs"]
-	path = tremor-www-docs
-	url = https://github.com/wayfair-tremor/tremor-www-docs.git
-[submodule "tremor-runtime"]
-	path = tremor-runtime
-	url = https://github.com/wayfair-tremor/tremor-runtime.git
+  path = tremor-www-docs
+  url = https://github.com/wayfair-tremor/tremor-www-docs.git

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use flate2::read::GzDecoder;
 use regex::Regex;
 use std::borrow::Borrow;
 // used instead of halfbrown::Hashmap because bincode can't deserialize that
@@ -22,6 +23,7 @@ use std::fs::{self, File};
 use std::io::{BufReader, BufWriter, Read};
 use std::path::{Path, PathBuf};
 use std::process::{self, Command};
+use tar::Archive;
 use walkdir::WalkDir;
 
 use tremor_script::ast::FnDoc;
@@ -32,9 +34,8 @@ use tremor_script::{registry, Script};
 
 const LANGUAGES: &[&str] = &["tremor-script", "tremor-query"];
 
-const BASE_DOCS_DIR: &str = "tremor-www-docs/docs";
-
-const TREMOR_STDLIB_DIR: &str = "tremor-runtime/tremor-script/lib";
+const TREMOR_SCRIPT_CRATE_NAME: &str = "tremor-script";
+const BASE_DOCS_DIR: &str = "tremor-www-docs";
 
 /*
 fn get_test_function_doc(language_name: &str) -> (String, FunctionDoc) {
@@ -65,10 +66,36 @@ fn get_test_function_doc(language_name: &str) -> (String, FunctionDoc) {
 }
 */
 
-fn parse_tremor_stdlib() -> HashMap<String, FunctionDoc> {
+// TODO add ability to infer this from a build environment variable, so that we can
+// override this easily for local dev testing
+fn get_tremor_script_crate_path(download_dir: &str) -> String {
+    let tremor_script_version = &get_cargo_lock_version_for_crate(TREMOR_SCRIPT_CRATE_NAME)
+        .expect("Failed to get tremor-script version from cargo lock file");
+    println!(
+        "Detected tremor-script version from cargo lock file: {}",
+        tremor_script_version
+    );
+
+    match get_local_cargo_registry_path_for_crate(TREMOR_SCRIPT_CRATE_NAME, tremor_script_version)
+        .unwrap()
+    {
+        Some(path) => path,
+        None => {
+            println!("Could not find tremor-script src in local cargo registry, so downloading it now...");
+            download_and_extract_crate(
+                TREMOR_SCRIPT_CRATE_NAME,
+                tremor_script_version,
+                download_dir,
+            )
+            .unwrap()
+        }
+    }
+}
+
+fn parse_tremor_stdlib(tremor_script_source_dir: &str) -> HashMap<String, FunctionDoc> {
     let mut function_docs: HashMap<String, FunctionDoc> = HashMap::new();
 
-    for entry in WalkDir::new(TREMOR_STDLIB_DIR) {
+    for entry in WalkDir::new(format!("{}/lib", tremor_script_source_dir)) {
         let entry = entry.unwrap();
         let path = entry.path();
 
@@ -86,7 +113,7 @@ fn parse_tremor_stdlib() -> HashMap<String, FunctionDoc> {
 
             match Script::parse(
                 &module_path,
-                &path.to_string_lossy(),
+                &path.display().to_string(),
                 module_text,
                 &registry,
             ) {
@@ -134,28 +161,19 @@ fn fndoc_to_function_doc(fndoc: &FnDoc, module_name: &str) -> FunctionDoc {
     }
 }
 
-fn parse_raw_function_docs(language_name: &str) -> HashMap<String, FunctionDoc> {
+fn parse_raw_function_docs(language_docs_dir: &str) -> HashMap<String, FunctionDoc> {
     let mut function_docs: HashMap<String, FunctionDoc> = HashMap::new();
 
-    let function_docs_path = Path::new(BASE_DOCS_DIR)
-        .join(language_name)
-        .join("functions");
-
-    for entry in fs::read_dir(&function_docs_path).unwrap() {
+    for entry in fs::read_dir(format!("{}/functions", language_docs_dir)).unwrap() {
         let entry = entry.unwrap();
         let path = entry.path();
 
-        //println!("{:?}", path.to_str());
-        //dbg!(path.to_str().unwrap().ends_with(".md"));
         // TODO figure out why this does not work
-        //dbg!(path.ends_with("md"));
         //if path.is_file() && path.ends_with(".md") {
         if path.is_file() && path.to_str().unwrap().ends_with(".md") {
             println!("Parsing markdown file: {}", path.display());
 
             let module_doc_file = File::open(Path::new(&path)).unwrap();
-            //File::open(Path::new(&function_docs_path).join(module_doc_filename)).unwrap();
-            //.map_err(|e| Error::from(format!("Could not open file {} => {}", file_name, e)))?;
             let mut buffered_reader = BufReader::new(module_doc_file);
 
             let mut module_doc_contents = String::new();
@@ -163,16 +181,11 @@ fn parse_raw_function_docs(language_name: &str) -> HashMap<String, FunctionDoc> 
                 .read_to_string(&mut module_doc_contents)
                 .unwrap();
 
-            // test
-            // TODO remove
-            //let (test_func, mut test_doc) = get_test_function_doc(language_name);
-            //function_docs.insert(test_func, test_doc);
-
             module_doc_contents
                 .split("\n### ")
                 .skip(1) // first element is the module header, so skip it
                 .for_each(|raw_function_doc| {
-                    let function_doc = to_function_doc(raw_function_doc);
+                    let function_doc = raw_doc_to_function_doc(raw_function_doc);
                     function_docs.insert(function_doc.signature.full_name.clone(), function_doc);
                 });
         }
@@ -181,7 +194,7 @@ fn parse_raw_function_docs(language_name: &str) -> HashMap<String, FunctionDoc> 
     function_docs
 }
 
-fn to_function_doc(raw_doc: &str) -> FunctionDoc {
+fn raw_doc_to_function_doc(raw_doc: &str) -> FunctionDoc {
     let doc_parts: Vec<&str> = raw_doc.splitn(2, '\n').map(|s| s.trim()).collect();
 
     // TOOD use named params here
@@ -228,11 +241,83 @@ fn bindump_function_docs(language_name: &str, dest_dir: &str) {
     );
 
     let function_docs = match language_name {
-        "tremor-script" => parse_tremor_stdlib(),
-        _ => parse_raw_function_docs(language_name),
+        "tremor-script" => {
+            let tremor_script_crate_path = get_tremor_script_crate_path(dest_dir);
+            println!(
+                "Reading tremor script stdlib files from {}",
+                tremor_script_crate_path
+            );
+            parse_tremor_stdlib(&tremor_script_crate_path)
+        }
+        _ => {
+            // Tremor docs repo is needed right now for generating aggregate function documentation
+            // as well as module completion items for tremor-query. Once we can can generate these
+            // the same way as tremor-script, this won't be needed.
+            if !Path::new(&format!("{}/LICENSE", BASE_DOCS_DIR)).exists() {
+                println!("Setting up submodule dependencies...");
+                run_command_or_fail(".", "git", &["submodule", "update", "--init"]);
+            }
+            parse_raw_function_docs(&format!("{}/docs/{}", BASE_DOCS_DIR, language_name))
+        }
     };
 
     bincode::serialize_into(&mut f, &function_docs).unwrap();
+}
+
+// Utility functions
+
+fn get_cargo_lock_version_for_crate(name: &str) -> Option<String> {
+    let re = Regex::new(&format!(r#""{}"[\r\n]+version = "(.+)""#, name)).unwrap();
+    re.captures(include_str!("Cargo.lock"))
+        .map(|caps| caps[1].to_string())
+}
+
+fn get_local_cargo_registry_path_for_crate(
+    name: &str,
+    version: &str,
+) -> Result<Option<String>, Box<dyn std::error::Error>> {
+    let crate_src_glob_path = home::cargo_home()?
+        .join(&format!("registry/src/*/{}-{}/", name, version))
+        .display()
+        .to_string();
+    Ok(glob::glob(&crate_src_glob_path)?
+        .map(|result| result.unwrap())
+        .max()
+        .map(|pathbuf| pathbuf.display().to_string()))
+}
+
+// run this async function with tokio runtime
+#[tokio::main]
+async fn download_and_extract_crate(
+    name: &str,
+    version: &str,
+    dest_dir: &str,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let crate_src_dir = format!("{}/{}-{}", dest_dir, name, version);
+
+    if Path::new(&format!("{}/Cargo.toml", crate_src_dir)).exists() {
+        println!(
+            "Crate content is already there in the final source directory {}, so skipping download",
+            crate_src_dir
+        );
+    } else {
+        let download_url = format!(
+            // based on https://github.com/rust-lang/crates.io/issues/1592#issuecomment-453221464
+            "https://crates.io/api/v1/crates/{}/{}/download",
+            name, version
+        );
+        println!(
+            "Downloading crate `{}=={}` from {}",
+            name, version, download_url
+        );
+        let crate_bytes = reqwest::get(&download_url).await?.bytes().await?;
+
+        println!("Exracting crate to {}/", dest_dir);
+        Archive::new(GzDecoder::new(&crate_bytes[..])).unpack(dest_dir)?;
+    }
+
+    // just follows the naming convention for a crate file (extracted above)
+    Ok(format!("{}/{}-{}", dest_dir, name, version))
 }
 
 // lifted from https://github.com/fede1024/rust-rdkafka/blob/v0.23.0/rdkafka-sys/build.rs#L7
@@ -254,7 +339,7 @@ where
     } else {
         PathBuf::from(cmd)
     };
-    eprintln!(
+    println!(
         "Running command: \"{} {}\" in dir: {}",
         cmd.display(),
         args.join(" "),
@@ -270,16 +355,6 @@ where
 }
 
 fn main() {
-    // Tremor docs repo is needed right now for generating the function documentation
-    // as well as module completion items. Once we store those items in a structured
-    // way as part of the tremor-script codebase, this won't be needed.
-    if !(Path::new("tremor-www-docs/LICENSE").exists()
-        && Path::new("tremor-runtime/LICENSE").exists())
-    {
-        eprintln!("Setting up docs submodule...");
-        run_command_or_fail(".", "git", &["submodule", "update", "--init"]);
-    }
-
     match env::var("OUT_DIR") {
         Ok(out_dir) => {
             for language_name in LANGUAGES {

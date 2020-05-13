@@ -66,9 +66,17 @@ fn get_test_function_doc(language_name: &str) -> (String, FunctionDoc) {
 }
 */
 
-// TODO add ability to infer this from a build environment variable, so that we can
-// override this easily for local dev testing
 fn get_tremor_script_crate_path(download_dir: &str) -> String {
+    // allows us to infer this from an environment variable, so that we can override
+    // this easily during local dev testing
+    if let Ok(env_path) = env::var("TRILL_TREMOR_SCRIPT_SRC_PATH") {
+        println!(
+            "Detected environment variable TRILL_TREMOR_SCRIPT_SRC_PATH for tremor script crate path: {}",
+            env_path
+        );
+        return env_path;
+    }
+
     let tremor_script_version = &get_cargo_lock_version_for_crate(TREMOR_SCRIPT_CRATE_NAME)
         .expect("Failed to get tremor-script version from cargo lock file");
     println!(

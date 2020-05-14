@@ -2304,6 +2304,7 @@ dependencies = [
  "regex",
  "reqwest",
  "serde_json",
+ "simd-json",
  "tar",
  "tokio",
  "tower-lsp",

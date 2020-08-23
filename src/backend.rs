@@ -14,10 +14,10 @@
 
 use crate::{language, lsp_utils};
 use halfbrown::HashMap;
-use jsonrpc_core::Result;
 use serde_json::Value;
 use std::fs;
 use tokio::sync::Mutex;
+use tower_lsp::jsonrpc::Result;
 use tower_lsp::lsp_types::*;
 use tower_lsp::{Client, LanguageServer};
 
@@ -32,13 +32,15 @@ struct DocumentState {
 type State = HashMap<Url, DocumentState>;
 
 pub struct Backend {
+    client: Client,
     language: Box<dyn language::Language>,
     state: Mutex<State>,
 }
 
 impl Backend {
-    pub fn new(language: Box<dyn language::Language>) -> Self {
+    pub fn new(client: Client, language: Box<dyn language::Language>) -> Self {
         Self {
+            client,
             language,
             state: Mutex::new(State::new()),
         }
@@ -176,7 +178,7 @@ impl Backend {
 
 #[tower_lsp::async_trait]
 impl LanguageServer for Backend {
-    async fn initialize(&self, _: &Client, _: InitializeParams) -> Result<InitializeResult> {
+    async fn initialize(&self, _: InitializeParams) -> Result<InitializeResult> {
         Ok(InitializeResult {
             server_info: Some(ServerInfo {
                 name: "tremor-language-server".to_string(),
@@ -205,7 +207,7 @@ impl LanguageServer for Backend {
                 experimental: None,
                 selection_range_provider: None,
                 folding_range_provider: None,
-                hover_provider: Some(true),
+                hover_provider: Some(HoverProviderCapability::Simple(true)),
                 implementation_provider: None,
                 references_provider: None,
                 rename_provider: None,
@@ -227,11 +229,13 @@ impl LanguageServer for Backend {
         })
     }
 
-    async fn initialized(&self, client: &Client, _: InitializedParams) {
+    async fn initialized(&self, _: InitializedParams) {
         file_dbg("initialized", "initialized");
         // TODO check this from clients
-        //client.show_message(MessageType::Info, "Initialized Trill!");
-        client.log_message(MessageType::Info, "Initialized Trill!");
+        //self.client.show_message(MessageType::Info, "Initialized Trill!").await;
+        self.client
+            .log_message(MessageType::Info, "Initialized Trill!")
+            .await;
     }
 
     // TODO do more here (as appropriate). manadatory implementations for the trait
@@ -254,19 +258,17 @@ impl LanguageServer for Backend {
         Ok(None)
     }
 
-    async fn execute_command(
-        &self,
-        client: &Client,
-        _: ExecuteCommandParams,
-    ) -> Result<Option<Value>> {
+    async fn execute_command(&self, _: ExecuteCommandParams) -> Result<Option<Value>> {
         file_dbg("execute", "execute");
-        client.log_message(MessageType::Info, "executing command!");
+        self.client
+            .log_message(MessageType::Info, "executing command!")
+            .await;
         Ok(None)
     }
 
     // backend state updates on text edits and reporting of diagnostics
 
-    async fn did_open(&self, client: &Client, params: DidOpenTextDocumentParams) {
+    async fn did_open(&self, params: DidOpenTextDocumentParams) {
         file_dbg("didOpen", "didOpen");
         file_dbg("didOpen_language", &params.text_document.language_id);
 
@@ -277,24 +279,28 @@ impl LanguageServer for Backend {
             if let Ok(text) = fs::read_to_string(path) {
                 self.update(uri.clone(), &text).await;
                 let d = self.get_diagnostics(&uri, &text);
-                client.publish_diagnostics(uri, d, None);
+                self.client.publish_diagnostics(uri, d, None).await;
             }
         }
     }
 
-    async fn did_change(&self, client: &Client, params: DidChangeTextDocumentParams) {
+    async fn did_change(&self, params: DidChangeTextDocumentParams) {
         file_dbg("didChange", "didChange");
         // TODO cleanup
         let uri = params.text_document.uri;
         let text = &params.content_changes[0].text;
         self.update(uri.clone(), text).await;
-        client.publish_diagnostics(uri.clone(), self.get_diagnostics(&uri, text), None);
+        self.client
+            .publish_diagnostics(uri.clone(), self.get_diagnostics(&uri, text), None)
+            .await;
     }
 
-    async fn did_close(&self, client: &Client, params: DidCloseTextDocumentParams) {
+    async fn did_close(&self, params: DidCloseTextDocumentParams) {
         file_dbg("didClose", "didClose");
         // TODO can cleanup backend state here
-        client.publish_diagnostics(params.text_document.uri, vec![], None);
+        self.client
+            .publish_diagnostics(params.text_document.uri, vec![], None)
+            .await;
     }
 
     // other lsp features

@@ -47,7 +47,7 @@ Make sure `.cargo/bin` is in your `$PATH` (or install it somewhere in your $PATH
 If you are developing on the language server:
 
 ```sh
-git clone git@github.com:wayfair-tremor/tremor-language-server.git
+git clone git@github.com:tremor-rs/tremor-language-server.git
 cd tremor-language-server
 
 # build and link somewhere in your path (for easy access/use in testing via editors)
@@ -62,11 +62,11 @@ cargo install --path . --root ~/ # make sure ~/bin/ is in your $PATH
 
 Follow instructions at:
 
-https://github.com/wayfair-tremor/tremor-vscode
+https://github.com/tremor-rs/tremor-vscode
 
 ### Vim setup
 
-Prerequisite: install https://github.com/wayfair-tremor/tremor-vim so that vim is aware of tremor filetypes (you also get syntax highlighting as a bonus).
+Prerequisite: install https://github.com/tremor-rs/tremor-vim so that vim is aware of tremor filetypes (you also get syntax highlighting as a bonus).
 
 For use with vim, we have a forked version of [ale](https://github.com/dense-analysis/ale) that can interact with the tremor language server:
 

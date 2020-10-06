@@ -31,7 +31,7 @@ tremor-script = "0.8.1"
 #
 # this is fine for language server use since we don't care as much for json
 # processing performance here (easy installation is more important for users)
-simd-json = { "version" = "0.3", "features" = ["allow-non-simd"] }
+simd-json = { version = "0.3", features = ["allow-non-simd"] }
 
 [dependencies]
 

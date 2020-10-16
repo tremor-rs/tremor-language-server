@@ -19,7 +19,7 @@ use crate::backend::file_dbg;
 
 pub fn to_lsp_position(location: &language::Location) -> Position {
     // position in language server protocol is zero-based
-    Position::new((location.line - 1) as u64, (location.column - 1) as u64)
+    Position::new((location.line() - 1) as u64, (location.column() - 1) as u64)
 }
 
 pub fn to_language_location(position: &Position) -> language::Location {
@@ -27,6 +27,7 @@ pub fn to_language_location(position: &Position) -> language::Location {
     language::Location::new(
         (position.line + 1) as usize,
         (position.character + 1) as usize,
+        0,
         0, // absolute byte offset -- we don't use it here so setting to 0
     )
 }
@@ -47,7 +48,7 @@ pub fn get_token(tokens: Vec<language::TokenSpan>, position: Position) -> Option
 
     let mut token = None;
     for (i, t) in tokens.iter().enumerate() {
-        if t.span.end.line == location.line && t.span.end.column > location.column {
+        if t.span.end.line() == location.line() && t.span.end.column() > location.column() {
             //file_dbg("get_token_span_end", &token.span.end.line.to_string());
             //file_dbg("get_token_location_end", &location.line.to_string());
             file_dbg("get_token_t_value", &t.value.to_string());

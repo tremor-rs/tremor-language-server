@@ -6,7 +6,7 @@ let b = origin::host();
 let c = 2 + 2;
 let d = 2 xor 3;
 
-##record::  # hell(
+#record::  # hell(
 
 #random::
 

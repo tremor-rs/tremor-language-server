@@ -68,6 +68,8 @@ https://github.com/tremor-rs/tremor-vscode
 
 Prerequisite: install https://github.com/tremor-rs/tremor-vim so that vim is aware of tremor filetypes (you also get syntax highlighting as a bonus).
 
+#### ale
+
 For use with vim, we have a forked version of [ale](https://github.com/dense-analysis/ale) that can interact with the tremor language server:
 
 https://github.com/anupdhml/ale/tree/tremor
@@ -171,7 +173,24 @@ For more ale setup and vim configuration:
 
 https://github.com/anupdhml/dotfiles/blob/virtualbox_new/data/.vimrc
 
-If you prefer not to use ale, these vim plugins should also work well as the server client:
+#### coc-nvim
+
+Install coc.nvim as described in their [README](https://github.com/neoclide/coc.nvim).
+
+Start vim and enter `:CocConfig` and enter the following as additional entry:
+
+```json
+{
+  "tremor": {
+    "command": "tremor-language-server",
+    "fileTypes": ["tremor", "trickle"]
+  }
+}
+```
+
+#### Other VIM language server clients
+
+If you prefer not to use ale or coc-nvim, these vim plugins should also work well as the server client:
 
 * https://github.com/prabirshrestha/vim-lsp
 * https://github.com/autozimu/LanguageClient-neovim

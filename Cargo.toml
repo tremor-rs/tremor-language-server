@@ -16,7 +16,7 @@ walkdir = "2.3"
 # for downloading and extracting tremor-script crate (when we can't read
 # it from the local cargo registry), in order to access the tremor script
 # stdlib documentation
-futures = "0.3.6"
+futures = "0.3.8"
 tokio = "0.2.22"
 tar = "0.4"
 flate2 = "1.0"

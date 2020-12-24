@@ -17,7 +17,7 @@ walkdir = "2.3"
 # it from the local cargo registry), in order to access the tremor script
 # stdlib documentation
 futures = "0.3.8"
-tokio = "0.2.22"
+tokio = "1.0.22"
 tar = "0.4"
 flate2 = "1.0"
 reqwest = "0.10"

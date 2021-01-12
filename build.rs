@@ -16,6 +16,7 @@ use flate2::read::GzDecoder;
 use regex::Regex;
 use std::borrow::Borrow;
 // used instead of halfbrown::Hashmap because bincode can't deserialize that
+use async_std::task;
 use std::collections::HashMap;
 use std::env;
 use std::ffi::OsStr;
@@ -90,11 +91,11 @@ fn get_tremor_script_crate_path(download_dir: &str) -> String {
         Some(path) => path,
         None => {
             println!("Could not find tremor-script src in local cargo registry, so downloading it now...");
-            download_and_extract_crate(
+            task::block_on(download_and_extract_crate(
                 TREMOR_SCRIPT_CRATE_NAME,
                 tremor_script_version,
                 download_dir,
-            )
+            ))
             .unwrap()
         }
     }
@@ -294,8 +295,6 @@ fn get_local_cargo_registry_path_for_crate(
         .map(|pathbuf| pathbuf.display().to_string()))
 }
 
-// run this async function with tokio runtime
-#[tokio::main]
 async fn download_and_extract_crate(
     name: &str,
     version: &str,

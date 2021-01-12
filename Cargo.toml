@@ -16,8 +16,7 @@ walkdir = "2.3"
 # for downloading and extracting tremor-script crate (when we can't read
 # it from the local cargo registry), in order to access the tremor script
 # stdlib documentation
-futures = "0.3.9"
-tokio = "0.2.22"
+async-std = "1.8"
 tar = "0.4"
 flate2 = "1.0"
 reqwest = "0.11"
@@ -40,6 +39,7 @@ clap = "2.33"
 
 halfbrown = "0.1"
 serde_json = "1.0.61"
+# this version of tokio is needed for compatibility with tower-lsp currently
 tokio = { version = "0.2", features = ["io-std", "macros", "sync"] }
 tower-lsp = "0.13"
 

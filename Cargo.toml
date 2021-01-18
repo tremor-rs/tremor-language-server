@@ -16,7 +16,7 @@ walkdir = "2.3"
 # for downloading and extracting tremor-script crate (when we can't read
 # it from the local cargo registry), in order to access the tremor script
 # stdlib documentation
-async-std = "1.8"
+async-std = "1.9"
 tar = "0.4"
 flate2 = "1.0"
 reqwest = "0.11"

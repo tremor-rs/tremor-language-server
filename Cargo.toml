@@ -1,6 +1,6 @@
 [package]
 name = "tremor-language-server"
-version = "0.9.4"
+version = "0.10.1"
 description = "Tremor Language Server (Trill)"
 authors = ["The Tremor Team"]
 edition = "2018"
@@ -22,7 +22,7 @@ flate2 = "1.0"
 reqwest = "0.11"
 
 # tremor deps
-tremor-script = "0.9.4"
+tremor-script = "0.10.1"
 
 # use non-simd fallback with simd-json so that we can install tremor-language-server
 # without needing to configure cpu target for simd-json compilation
@@ -44,4 +44,4 @@ tokio = { version = "0.2", features = ["io-std", "macros", "sync"] }
 tower-lsp = "0.13"
 
 # tremor deps
-tremor-script = "0.9.4"
+tremor-script = "0.10.1"

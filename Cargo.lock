@@ -2051,9 +2051,9 @@ dependencies = [
 
 [[package]]
 name = "simd-json"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9bf3b0383867d0f90ffbc2fa376c7779cf6f248ee7eac560e436e2d9ac246b97"
+checksum = "14174821a1056b3e4e4c8005f02aacbe0a8e5379a58fe6031b530f7e1bc18283"
 dependencies = [
  "halfbrown",
  "serde",
@@ -2450,7 +2450,7 @@ dependencies = [
  "regex",
  "reqwest",
  "serde_json",
- "simd-json 0.4.0",
+ "simd-json 0.4.1",
  "tar",
  "tokio 0.2.25",
  "tower-lsp",

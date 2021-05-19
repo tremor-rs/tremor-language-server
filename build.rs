@@ -369,7 +369,7 @@ fn main() {
             }
         }
         Err(e) => {
-            eprintln!("Variable: {}\nError: {}", "OUT_DIR", e);
+            eprintln!("Variable: OUT_DIR\nError: {}", e);
             process::exit(1)
         }
     }

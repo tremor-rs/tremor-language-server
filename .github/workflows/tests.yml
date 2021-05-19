@@ -32,8 +32,8 @@ jobs:
         env:
           RUSTFLAGS: -C target-cpu=native
         with:
-          version: '0.15.0'
-          args: ' --exclude-files target* --all'
+          version: '0.18.0-alpha3'
+          args: ' --avoid-cfg-tarpaulin --exclude-files target* --all'
       - uses: codecov/codecov-action@v1
         with:
           token: ${{secrets.CODECOV_TOKEN}}

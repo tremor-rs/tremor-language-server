@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use crate::language;
-use tower_lsp::lsp_types::*;
+use tower_lsp::lsp_types::{DiagnosticSeverity, Position};
 
 use crate::backend::file_dbg;
 
@@ -22,11 +22,12 @@ pub fn to_lsp_position(location: &language::Location) -> Position {
     Position::new((location.line() - 1) as u64, (location.column() - 1) as u64)
 }
 
+#[allow(clippy::cast_possible_truncation)]
 pub fn to_language_location(position: &Position) -> language::Location {
     // location numbers in our languages starts from one
     language::Location::new(
-        (position.line + 1) as usize,
-        (position.character + 1) as usize,
+        (position.line + 1) as usize, // we should never have line positions > 32 bit
+        (position.character + 1) as usize, // we should never have character positions > 32 bit
         0,
         0, // absolute byte offset -- we don't use it here so setting to 0
     )
@@ -40,7 +41,7 @@ pub fn to_lsp_severity(error_level: &language::ErrorLevel) -> DiagnosticSeverity
     }
 }
 
-pub fn get_token(tokens: Vec<language::TokenSpan>, position: Position) -> Option<String> {
+pub fn get_token(tokens: &[language::TokenSpan], position: Position) -> Option<String> {
     let location = to_language_location(&position);
 
     //file_dbg("get_token_location_line", &location.line.to_string());

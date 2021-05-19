@@ -19,6 +19,7 @@ use tremor_script::Script;
 pub const LANGUAGE_NAME: &str = "tremor-script";
 pub const FILE_EXTENSION: &str = "tremor";
 
+#[allow(clippy::module_name_repetitions)]
 #[derive(Debug)]
 pub struct TremorScript {
     registry: registry::Registry,

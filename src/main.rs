@@ -12,6 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#![deny(warnings)]
+#![deny(
+    clippy::all,
+    clippy::pedantic
+    )]
+
 mod backend;
 mod language;
 mod lsp_utils;
@@ -68,8 +74,7 @@ async fn main() {
         );
     }
 
-    match language::lookup(language_name) {
-        Some(language) => {
+    if let Some(language) = language::lookup(language_name) {
             let stdin = tokio::io::stdin();
             let stdout = tokio::io::stdout();
 
@@ -78,10 +83,8 @@ async fn main() {
                 .interleave(messages)
                 .serve(service)
                 .await;
-        }
-        None => {
+        } else {
             eprintln!("Error: unknown tremor language {}", language_name);
             std::process::exit(1)
         }
-    }
 }

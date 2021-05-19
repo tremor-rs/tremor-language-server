@@ -18,7 +18,7 @@ use serde_json::Value;
 use std::fs;
 use tokio::sync::Mutex;
 use tower_lsp::jsonrpc::Result;
-use tower_lsp::lsp_types::*;
+use tower_lsp::lsp_types::{CompletionItem, CompletionItemKind, CompletionOptions, CompletionParams, CompletionResponse, Diagnostic, DidChangeTextDocumentParams, DidCloseTextDocumentParams, DidOpenTextDocumentParams, DocumentHighlight, DocumentHighlightParams, Documentation, ExecuteCommandParams, Hover, HoverContents, HoverParams, HoverProviderCapability, InitializeParams, InitializeResult, InitializedParams, InsertTextFormat, MarkupContent, MarkupKind, MessageType, Position, Range, ServerCapabilities, ServerInfo, SymbolInformation, TextDocumentSyncCapability, TextDocumentSyncKind, Url, WorkDoneProgressOptions, WorkspaceCapability, WorkspaceFolderCapability, WorkspaceFolderCapabilityChangeNotifications, WorkspaceSymbolParams};
 use tower_lsp::{Client, LanguageServer};
 
 // stores the latest state of the document as it changes (on edits)
@@ -98,7 +98,7 @@ impl Backend {
         };
 
         if let Some(tokens) = self.language.tokenize(uri, text) {
-            if let Some(token) = lsp_utils::get_token(tokens, pre_position) {
+            if let Some(token) = lsp_utils::get_token(&tokens, pre_position) {
                 file_dbg("get_completions_token", &token);
                 // TODO eliminate the need for this by improving get_token()
                 let module_parts: Vec<&str> = token.rsplitn(2, "::").collect();
@@ -161,7 +161,7 @@ impl Backend {
     ) -> Option<MarkupContent> {
         // TODO merge the repeated tokenize operation with get_completions()?
         if let Some(tokens) = self.language.tokenize(uri, text) {
-            if let Some(token) = lsp_utils::get_token(tokens, position) {
+            if let Some(token) = lsp_utils::get_token(&tokens, position) {
                 file_dbg("get_hover_content_token", &token);
                 if let Some(function_doc) = self.language.function_doc(uri, &token) {
                     file_dbg("get_hover_content_function_doc", &function_doc.description);

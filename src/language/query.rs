@@ -21,6 +21,7 @@ pub const LANGUAGE_NAME: &str = "tremor-query";
 pub const FILE_EXTENSION: &str = "trickle";
 
 #[derive(Debug)]
+#[allow(clippy::module_name_repetitions)]
 pub struct TremorQuery {
     registry: registry::Registry,
     aggr_registry: registry::Aggr,
@@ -56,14 +57,11 @@ impl Language for TremorQuery {
     }
 
     fn functions(&self, uri: &Url, module_name: &str) -> Vec<String> {
-        if let Some(module) = self.aggr_registry.find_module(module_name) {
+        self.aggr_registry.find_module(module_name).map_or_else(|| self.tremor_script.functions(uri, module_name), |module| {
             let mut vec: Vec<String> = module.keys().cloned().collect();
             vec.sort();
             vec
-        } else {
-            // no agg functions found so try for script functions
-            self.tremor_script.functions(uri, module_name)
-        }
+        })
     }
 
     fn function_doc(&self, uri: &Url, full_function_name: &str) -> Option<&FunctionDoc> {

@@ -57,11 +57,14 @@ impl Language for TremorQuery {
     }
 
     fn functions(&self, uri: &Url, module_name: &str) -> Vec<String> {
-        self.aggr_registry.find_module(module_name).map_or_else(|| self.tremor_script.functions(uri, module_name), |module| {
-            let mut vec: Vec<String> = module.keys().cloned().collect();
-            vec.sort();
-            vec
-        })
+        self.aggr_registry.find_module(module_name).map_or_else(
+            || self.tremor_script.functions(uri, module_name),
+            |module| {
+                let mut vec: Vec<String> = module.keys().cloned().collect();
+                vec.sort();
+                vec
+            },
+        )
     }
 
     fn function_doc(&self, uri: &Url, full_function_name: &str) -> Option<&FunctionDoc> {

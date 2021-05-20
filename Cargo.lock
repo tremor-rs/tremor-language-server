@@ -2411,7 +2411,7 @@ dependencies = [
 
 [[package]]
 name = "tremor-language-server"
-version = "0.11.2"
+version = "0.11.3"
 dependencies = [
  "async-std",
  "bincode",
@@ -2433,9 +2433,9 @@ dependencies = [
 
 [[package]]
 name = "tremor-script"
-version = "0.11.2"
+version = "0.11.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "27724c1fdda21cea30519c7d5fdc0bd64e8de6159912081eed07de78489de4a5"
+checksum = "e5c1e77318cd4e2e472d1369476a5972f11874eba0653f0cd76ee79be2c39355"
 dependencies = [
  "atty",
  "base64 0.13.0",

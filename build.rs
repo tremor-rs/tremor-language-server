@@ -14,16 +14,14 @@
 
 use flate2::read::GzDecoder;
 use regex::Regex;
-use std::borrow::Borrow;
 // used instead of halfbrown::Hashmap because bincode can't deserialize that
 use async_std::task;
 use std::collections::HashMap;
 use std::env;
-use std::ffi::OsStr;
 use std::fs::{self, File};
 use std::io::{BufReader, BufWriter, Read};
-use std::path::{Path, PathBuf};
-use std::process::{self, Command};
+use std::path::Path;
+use std::process;
 use tar::Archive;
 use walkdir::WalkDir;
 
@@ -259,13 +257,6 @@ fn bindump_function_docs(language_name: &str, dest_dir: &str) {
             parse_tremor_stdlib(&tremor_script_crate_path)
         }
         _ => {
-            // Tremor docs repo is needed right now for generating aggregate function documentation
-            // as well as module completion items for tremor-query. Once we can can generate these
-            // the same way as tremor-script, this won't be needed.
-            if !Path::new(&format!("{}/LICENSE", BASE_DOCS_DIR)).exists() {
-                println!("Setting up submodule dependencies...");
-                run_command_or_fail(".", "git", &["submodule", "update", "--init"]);
-            }
             parse_raw_function_docs(&format!("{}/docs/{}", BASE_DOCS_DIR, language_name))
         }
     };
@@ -325,40 +316,6 @@ async fn download_and_extract_crate(
 
     // just follows the naming convention for a crate file (extracted above)
     Ok(format!("{}/{}-{}", dest_dir, name, version))
-}
-
-// lifted from https://github.com/fede1024/rust-rdkafka/blob/v0.23.0/rdkafka-sys/build.rs#L7
-fn run_command_or_fail<P, S>(dir: &str, cmd: P, args: &[S])
-where
-    P: AsRef<Path>,
-    S: Borrow<str> + AsRef<OsStr>,
-{
-    let cmd = cmd.as_ref();
-    let cmd = if cmd.components().count() > 1 && cmd.is_relative() {
-        // If `cmd` is a relative path (and not a bare command that should be
-        // looked up in PATH), absolutize it relative to `dir`, as otherwise the
-        // behavior of std::process::Command is undefined.
-        // https://github.com/rust-lang/rust/issues/37868
-        PathBuf::from(dir)
-            .join(cmd)
-            .canonicalize()
-            .expect("canonicalization failed")
-    } else {
-        PathBuf::from(cmd)
-    };
-    println!(
-        "Running command: \"{} {}\" in dir: {}",
-        cmd.display(),
-        args.join(" "),
-        dir
-    );
-    let ret = Command::new(cmd).current_dir(dir).args(args).status();
-    match ret.map(|status| (status.success(), status.code())) {
-        Ok((true, _)) => (),
-        Ok((false, Some(c))) => panic!("Command failed with error code {}", c),
-        Ok((false, None)) => panic!("Command got killed"),
-        Err(e) => panic!("Command failed with error: {}", e),
-    }
 }
 
 fn main() {

@@ -7,6 +7,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
+        with:
+          submodules: 'recursive'
       - name: Install deps [Linux]
         run: |
             sudo apt-get -qy update && sudo apt-get install -y libssl-dev libssl1.1
@@ -20,6 +22,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
+        with:
+          submodules: 'recursive'
       - name: Install deps
         run: |
             sudo apt-get -qy update && sudo apt-get install -y libssl-dev libssl1.1

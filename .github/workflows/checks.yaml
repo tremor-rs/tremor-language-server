@@ -7,12 +7,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
+        with:
+          submodules: 'recursive'
       - name: Check license headers
         run: ./.github/checks/copyright.sh
   sanity:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
+        with:
+          submodules: 'recursive'
       - name: Safety checks
         run: ./.github/checks/safety.sh -a
   unused-deps:
@@ -23,12 +27,16 @@ jobs:
       - name: Install deps
         run: sudo snap install --classic ripgrep
       - uses: actions/checkout@v1
+        with:
+          submodules: 'recursive'
       - name: Check for unused dependencies
         run: ./.github/checks/deps.sh .
   format:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
+        with:
+          submodules: 'recursive'
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
@@ -39,6 +47,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
+        with:
+          submodules: 'recursive'
       - name: Install deps
         run: |
             sudo apt-get -qy update && sudo apt-get install -y libssl-dev libssl1.1

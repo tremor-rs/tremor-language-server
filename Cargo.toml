@@ -6,8 +6,8 @@ license = "Apache-2.0"
 name = "tremor-language-server"
 version = "0.11.4"
 exclude = [
-    "tremor-www-docs", 
-    "!tremor-www-docs/docs/tremor-query", 
+    "tremor-www-docs",
+    "!tremor-www-docs/docs/tremor-query",
     "tremor-www-docs/docs/tremor-query/grammar",
     "!tremor-www-docs/docs/tremor-script",
     "tremor-www-docs/docs/tremor-script/grammar"]

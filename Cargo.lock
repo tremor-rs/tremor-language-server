@@ -2435,9 +2435,9 @@ dependencies = [
 
 [[package]]
 name = "tremor-script"
-version = "0.11.4"
+version = "0.11.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e753307a2f8de10e9c68f902d64e9babc0a2dbef06a438c03707218579ffdf43"
+checksum = "6c192b7c8cc866a6e3ff1343b59eaead6e49e5550255d866d461b8636e68fdd0"
 dependencies = [
  "atty",
  "base64 0.13.0",

@@ -88,7 +88,7 @@ impl Backend {
                 diagnostics.push(Diagnostic {
                     range,
                     message,
-                    severity: Some(lsp_utils::to_lsp_severity(&e.level())),
+                    severity: Some(lsp_utils::to_lsp_severity(e.level())),
                     source: Some("tremor-language-server".to_string()),
                     code: None,
                     related_information: None,

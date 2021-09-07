@@ -1,4 +1,4 @@
-// Copyright 2018-2020, Wayfair GmbH
+// Copyright 2018-2021, Wayfair GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
 
 #[macro_use]
 mod prelude;
+mod deploy;
 mod query;
 mod script;
 
@@ -26,9 +27,11 @@ pub use prelude::{Language, Token, TokenSpan};
 pub const LANGUAGE_NAMES: &[&str] = &[
     script::LANGUAGE_NAME,
     query::LANGUAGE_NAME,
+    deploy::LANGUAGE_NAME,
     // alternate names for above
     script::FILE_EXTENSION,
     query::FILE_EXTENSION,
+    deploy::LANGUAGE_NAME,
 ];
 
 pub const DEFAULT_LANGUAGE_NAME: &str = script::LANGUAGE_NAME;
@@ -40,6 +43,9 @@ pub fn lookup(language_name: &str) -> Option<Box<dyn Language>> {
         }
         query::LANGUAGE_NAME | query::FILE_EXTENSION => {
             Some(Box::new(query::TremorQuery::default()))
+        }
+        deploy::LANGUAGE_NAME | deploy::FILE_EXTENSION => {
+            Some(Box::new(deploy::TremorDeploy::default()))
         }
         _ => None,
     }

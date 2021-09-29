@@ -14,16 +14,14 @@
 
 use flate2::read::GzDecoder;
 use regex::Regex;
-use std::borrow::Borrow;
 // used instead of halfbrown::Hashmap because bincode can't deserialize that
 use async_std::task;
 use std::collections::HashMap;
 use std::env;
-use std::ffi::OsStr;
-use std::fs::{self, File};
+use std::fs::File;
 use std::io::{BufReader, BufWriter, Read};
-use std::path::{Path, PathBuf};
-use std::process::{self, Command};
+use std::path::Path;
+use std::process;
 use tar::Archive;
 use walkdir::WalkDir;
 
@@ -33,39 +31,11 @@ use tremor_script::docs::{FunctionDoc, FunctionSignatureDoc};
 use tremor_script::path::ModulePath;
 use tremor_script::{registry, Script};
 
-const LANGUAGES: &[&str] = &["tremor-script", "tremor-query"];
+const TREMOR_SCRIPT: &str = "tremor-script";
+const TREMOR_QUERY: &str = "tremor-query";
+const LANGUAGES: &[&str] = &[TREMOR_SCRIPT, TREMOR_QUERY];
 
-const TREMOR_SCRIPT_CRATE_NAME: &str = "tremor-script";
-const BASE_DOCS_DIR: &str = "tremor-www-docs";
-
-/*
-fn get_test_function_doc(language_name: &str) -> (String, FunctionDoc) {
-    let test_func = match language_name {
-        "tremor-script" => "random::bool".to_string(),
-        "tremor-query" => "stats::min".to_string(),
-        _ => unreachable!(),
-    };
-
-    let test_doc = match language_name {
-        "tremor-script" => FunctionDoc {
-            signature: "random::bool() -> bool".to_string(),
-            description: "Generates a random boolean.".to_string(),
-            summary: None,
-            examples: Some("```random::bool() # either true or false```".to_string()),
-        },
-        "tremor-query" => FunctionDoc {
-            signature: "stats::min(int|float) -> int|float".to_string(),
-            description: "Determines the smallest event value in the current windowed operation."
-                .to_string(),
-            summary: None,
-            examples: Some("```trickle\nstats::min(event.value)\n```".to_string()),
-        },
-        _ => unreachable!(),
-    };
-
-    (test_func, test_doc)
-}
-*/
+const TREMOR_SCRIPT_CRATE_NAME: &str = TREMOR_SCRIPT;
 
 fn get_tremor_script_crate_path(download_dir: &str) -> String {
     // allows us to infer this from an environment variable, so that we can override
@@ -101,10 +71,14 @@ fn get_tremor_script_crate_path(download_dir: &str) -> String {
     }
 }
 
-fn parse_tremor_stdlib(tremor_script_source_dir: &str) -> HashMap<String, FunctionDoc> {
+fn parse_tremor_stdlib(
+    tremor_script_source_dir: &str,
+    stdlib_dir: &str,
+) -> HashMap<String, FunctionDoc> {
     let mut function_docs: HashMap<String, FunctionDoc> = HashMap::new();
 
-    for entry in WalkDir::new(format!("{}/lib", tremor_script_source_dir)) {
+    let stdlib_location = Path::new(tremor_script_source_dir).join(stdlib_dir);
+    for entry in WalkDir::new(stdlib_location) {
         let entry = entry.unwrap();
         let path = entry.path();
 
@@ -170,74 +144,6 @@ fn fndoc_to_function_doc(fndoc: &FnDoc, module_name: &str) -> FunctionDoc {
     }
 }
 
-fn parse_raw_function_docs(language_docs_dir: &str) -> HashMap<String, FunctionDoc> {
-    let mut function_docs: HashMap<String, FunctionDoc> = HashMap::new();
-
-    for entry in fs::read_dir(format!("{}/functions", language_docs_dir)).unwrap() {
-        let entry = entry.unwrap();
-        let path = entry.path();
-
-        // TODO figure out why this does not work
-        //if path.is_file() && path.ends_with(".md") {
-        if path.is_file() && path.to_str().unwrap().ends_with(".md") {
-            println!("Parsing markdown file: {}", path.display());
-
-            let module_doc_file = File::open(Path::new(&path)).unwrap();
-            let mut buffered_reader = BufReader::new(module_doc_file);
-
-            let mut module_doc_contents = String::new();
-            buffered_reader
-                .read_to_string(&mut module_doc_contents)
-                .unwrap();
-
-            module_doc_contents
-                .split("\n### ")
-                .skip(1) // first element is the module header, so skip it
-                .for_each(|raw_function_doc| {
-                    let function_doc = raw_doc_to_function_doc(raw_function_doc);
-                    function_docs.insert(function_doc.signature.full_name.clone(), function_doc);
-                });
-        }
-    }
-
-    function_docs
-}
-
-fn raw_doc_to_function_doc(raw_doc: &str) -> FunctionDoc {
-    let doc_parts: Vec<&str> = raw_doc.splitn(2, '\n').map(|s| s.trim()).collect();
-
-    // TOOD use named params here
-    let re = Regex::new(r"(.+)\((.*)\)\s*->(.+)").unwrap();
-    let caps_raw = re.captures(doc_parts[0]);
-
-    let signature_doc = match caps_raw {
-        Some(caps) => {
-            println!("Found function: {}", &caps[0]);
-            FunctionSignatureDoc {
-                full_name: caps[1].trim().to_string(),
-                args: caps[2].split(',').map(|s| s.trim().to_string()).collect(),
-                result: caps[3].trim().to_string(),
-            }
-        }
-        None => {
-            // TODO proper error handling here
-            dbg!(&doc_parts[0]);
-            dbg!(&caps_raw);
-            FunctionSignatureDoc {
-                full_name: "random::string".to_string(),
-                args: vec!["length".to_string()],
-                result: "string".to_string(),
-            }
-        }
-    };
-    FunctionDoc {
-        signature: signature_doc,
-        description: doc_parts[1].to_string(),
-        summary: None,  // TODO add first line?
-        examples: None, // TODO parse out stuff in code blocks
-    }
-}
-
 // TODO remove unwraps here
 fn bindump_function_docs(language_name: &str, dest_dir: &str) {
     let dest_path = Path::new(dest_dir).join(format!("function_docs.{}.bin", language_name));
@@ -249,24 +155,26 @@ fn bindump_function_docs(language_name: &str, dest_dir: &str) {
         dest_path.to_str().unwrap()
     );
 
+    let tremor_script_crate_path = get_tremor_script_crate_path(dest_dir);
     let function_docs = match language_name {
-        "tremor-script" => {
-            let tremor_script_crate_path = get_tremor_script_crate_path(dest_dir);
+        TREMOR_SCRIPT => {
             println!(
-                "Reading tremor script stdlib files from {}",
-                tremor_script_crate_path
+                "Reading {} stdlib files from {}",
+                TREMOR_SCRIPT, tremor_script_crate_path
             );
-            parse_tremor_stdlib(&tremor_script_crate_path)
+            parse_tremor_stdlib(&tremor_script_crate_path, "lib")
         }
-        _ => {
-            // Tremor docs repo is needed right now for generating aggregate function documentation
-            // as well as module completion items for tremor-query. Once we can can generate these
-            // the same way as tremor-script, this won't be needed.
-            if !Path::new(&format!("{}/docs", BASE_DOCS_DIR)).exists() {
-                println!("Setting up submodule dependencies...");
-                run_command_or_fail(".", "git", &["submodule", "update", "--init"]);
-            }
-            parse_raw_function_docs(&format!("{}/docs/{}", BASE_DOCS_DIR, language_name))
+        TREMOR_QUERY => {
+            println!(
+                "Reading {} stdlib files from {}",
+                TREMOR_QUERY, tremor_script_crate_path
+            );
+            // aggr functions have documentation stubs within the `docs` dir
+            parse_tremor_stdlib(&tremor_script_crate_path, "docs")
+        }
+        other => {
+            eprintln!("Unsupported language: {}", other);
+            return;
         }
     };
 
@@ -325,40 +233,6 @@ async fn download_and_extract_crate(
 
     // just follows the naming convention for a crate file (extracted above)
     Ok(format!("{}/{}-{}", dest_dir, name, version))
-}
-
-// lifted from https://github.com/fede1024/rust-rdkafka/blob/v0.23.0/rdkafka-sys/build.rs#L7
-fn run_command_or_fail<P, S>(dir: &str, cmd: P, args: &[S])
-where
-    P: AsRef<Path>,
-    S: Borrow<str> + AsRef<OsStr>,
-{
-    let cmd = cmd.as_ref();
-    let cmd = if cmd.components().count() > 1 && cmd.is_relative() {
-        // If `cmd` is a relative path (and not a bare command that should be
-        // looked up in PATH), absolutize it relative to `dir`, as otherwise the
-        // behavior of std::process::Command is undefined.
-        // https://github.com/rust-lang/rust/issues/37868
-        PathBuf::from(dir)
-            .join(cmd)
-            .canonicalize()
-            .expect("canonicalization failed")
-    } else {
-        PathBuf::from(cmd)
-    };
-    println!(
-        "Running command: \"{} {}\" in dir: {}",
-        cmd.display(),
-        args.join(" "),
-        dir
-    );
-    let ret = Command::new(cmd).current_dir(dir).args(args).status();
-    match ret.map(|status| (status.success(), status.code())) {
-        Ok((true, _)) => (),
-        Ok((false, Some(c))) => panic!("Command failed with error code {}", c),
-        Ok((false, None)) => panic!("Command got killed"),
-        Err(e) => panic!("Command failed with error: {}", e),
-    }
 }
 
 fn main() {

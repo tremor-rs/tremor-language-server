@@ -29,7 +29,7 @@ reqwest = "0.11"
 tar = "0.4"
 
 # tremor deps
-tremor-script = "0.11.7"
+tremor-script = "0.11.8"
 
 # use non-simd fallback with simd-json so that we can install tremor-language-server
 # without needing to configure cpu target for simd-json compilation
@@ -51,4 +51,4 @@ tokio = { version = "0.2", features = ["io-std", "macros", "sync"] }
 tower-lsp = "0.13"
 
 # tremor deps
-tremor-script = "0.11.7"
+tremor-script = "0.11.8"

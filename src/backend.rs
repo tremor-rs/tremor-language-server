@@ -356,9 +356,9 @@ impl LanguageServer for Backend {
 
 // TODO remove. just for testing right now
 pub fn file_dbg(name: &str, content: &str) {
+    use std::env::temp_dir;
     use std::fs::File;
     use std::io::Write;
-    use std::env::temp_dir;
     use std::path::PathBuf;
 
     let mut path = PathBuf::new();

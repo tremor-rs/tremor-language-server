@@ -358,8 +358,12 @@ impl LanguageServer for Backend {
 pub fn file_dbg(name: &str, content: &str) {
     use std::fs::File;
     use std::io::Write;
+    use std::env::temp_dir;
+    use std::path::PathBuf;
 
-    let path = format!("/tmp/tremor_{}", name);
+    let mut path = PathBuf::new();
+    path.push(temp_dir());
+    path.push(format!("tremor_{}", name));
 
     let mut output = File::create(path).unwrap();
     write!(output, "{}", content).unwrap();

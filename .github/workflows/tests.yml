@@ -6,7 +6,7 @@ jobs:
   tests-linux:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
         with:
           submodules: 'recursive'
       - name: Install deps [Linux]
@@ -14,14 +14,16 @@ jobs:
             sudo apt-get -qy update && sudo apt-get install -y libssl-dev libssl1.1
       - uses: actions-rs/toolchain@v1
         with:
+          profile: minimal
           toolchain: stable
           override: true
+      - uses: Swatinem/rust-cache@v1
       - name: Run tests
-        run: cargo test --all
+        run: cargo test --all --locked
   code-coverage:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
         with:
           submodules: 'recursive'
       - name: Install deps
@@ -31,14 +33,16 @@ jobs:
         with:
           toolchain: stable
           override: true
+      - uses: Swatinem/rust-cache@v1
       - name: Run cargo-tarpaulin
         uses: actions-rs/tarpaulin@v0.1
         env:
           RUSTFLAGS: -C target-cpu=native
         with:
-          version: '0.18.0-alpha3'
-          args: ' --avoid-cfg-tarpaulin --exclude-files target* --all'
-      - uses: codecov/codecov-action@v1
+          version: '0.18.0'
+          args: ' --avoid-cfg-tarpaulin --exclude-files target* --all --out Lcov'
+      - name: Coveralls
+        uses: coverallsapp/github-action@master
         with:
-          token: ${{secrets.CODECOV_TOKEN}}
-          file: ./cobertura.xml
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          path-to-lcov: ./lcov.info

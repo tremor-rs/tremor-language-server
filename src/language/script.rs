@@ -44,7 +44,7 @@ impl Language for TremorScript {
         m.add(p.ancestors().nth(2).unwrap().to_str().unwrap().to_string());
         let text = text.to_string();
         match Script::parse(&m, "<file>", text, &self.registry) {
-            Ok(script) => Some(script.warnings().map(|w| w.into()).collect()),
+            Ok(script) => Some(script.warnings().map(Into::into).collect()),
             Err(ref e) => Some(vec![e.into()]),
         }
     }

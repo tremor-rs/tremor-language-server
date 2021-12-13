@@ -51,7 +51,7 @@ impl Language for TremorQuery {
         m.add(p.ancestors().nth(2).unwrap().to_str().unwrap().to_string());
         let cus = vec![];
         match Query::parse(&m, "<file>", text, cus, &self.registry, &self.aggr_registry) {
-            Ok(query) => Some(query.warnings.iter().map(|w| w.into()).collect()),
+            Ok(query) => Some(query.warnings.iter().map(Into::into).collect()),
             Err(ref e) => Some(vec![e.into()]),
         }
     }

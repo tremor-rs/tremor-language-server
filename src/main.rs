@@ -32,18 +32,18 @@ async fn main() {
         .about(env!("CARGO_PKG_DESCRIPTION"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .arg(
-            Arg::with_name("language")
+            Arg::new("language")
                 .help("Tremor language to support")
-                .short("l")
+                .short('l')
                 .long("language")
                 .takes_value(true)
                 .possible_values(language::LANGUAGE_NAMES)
                 .default_value(language::DEFAULT_LANGUAGE_NAME),
         )
         .arg(
-            Arg::with_name("path")
+            Arg::new("path")
                 .help("TREMOR_PATH to set")
-                .short("p")
+                .short('p')
                 .long("path")
                 .takes_value(true)
                 .default_value(""),

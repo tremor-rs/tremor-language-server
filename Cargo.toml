@@ -48,7 +48,7 @@ halfbrown = "0.1"
 serde_json = "1.0.79"
 # this version of tokio is needed for compatibility with tower-lsp currently
 tokio = { version = "0.2", features = ["io-std", "macros", "sync"] }
-tower-lsp = "0.13"
+tower-lsp = "0.14"
 
 # tremor deps
 tremor-script = "0.11.10"

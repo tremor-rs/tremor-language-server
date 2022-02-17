@@ -20,14 +20,14 @@ mod language;
 mod lsp_utils;
 
 use backend::Backend;
-use clap::{App, Arg};
+use clap::{Arg, Command};
 use tower_lsp::{LspService, Server};
 
 #[tokio::main]
 async fn main() {
     backend::file_dbg("main", "main");
 
-    let matches = App::new(env!("CARGO_PKG_NAME"))
+    let matches = Command::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
         .about(env!("CARGO_PKG_DESCRIPTION"))
         .author(env!("CARGO_PKG_AUTHORS"))

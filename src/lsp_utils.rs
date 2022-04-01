@@ -14,74 +14,72 @@
 
 use crate::language;
 use tower_lsp::lsp_types::{DiagnosticSeverity, Position};
+use tremor_script::lexer::{Spanned, Token};
 
 use crate::backend::file_dbg;
 
-pub fn to_lsp_position(location: &language::Location) -> Position {
+pub(crate) fn to_lsp_position(location: &language::Location) -> Position {
     // position in language server protocol is zero-based
-    Position::new((location.line() - 1) as u64, (location.column() - 1) as u64)
+    Position::new((location.line() - 1) as u32, (location.column() - 1) as u32)
 }
 
-#[allow(clippy::cast_possible_truncation)]
-pub fn to_language_location(position: &Position) -> language::Location {
-    // location numbers in our languages starts from one
-    language::Location::new(
-        (position.line + 1) as usize, // we should never have line positions > 32 bit
-        (position.character + 1) as usize, // we should never have character positions > 32 bit
-        0,
-        0, // absolute byte offset -- we don't use it here so setting to 0
-    )
-}
-
-pub fn to_lsp_severity(error_level: &language::ErrorLevel) -> DiagnosticSeverity {
+pub(crate) fn to_lsp_severity(error_level: &language::ErrorLevel) -> DiagnosticSeverity {
     match error_level {
-        language::ErrorLevel::Error => DiagnosticSeverity::Error,
-        language::ErrorLevel::Warning => DiagnosticSeverity::Warning,
-        language::ErrorLevel::Hint => DiagnosticSeverity::Hint,
+        language::ErrorLevel::Error => DiagnosticSeverity::ERROR,
+        language::ErrorLevel::Warning => DiagnosticSeverity::WARNING,
+        language::ErrorLevel::Hint => DiagnosticSeverity::HINT,
     }
 }
 
-pub fn get_token(tokens: &[language::TokenSpan], position: Position) -> Option<String> {
-    let location = to_language_location(&position);
+pub(crate) fn get_token(tokens: &[language::TokenSpan], position: Position) -> Option<String> {
+    let line = position.line as usize;
+    let column = position.character as usize;
 
     //file_dbg("get_token_location_line", &location.line.to_string());
     //file_dbg("get_token_location_column", &location.column.to_string());
 
     let mut token = None;
     for (i, t) in tokens.iter().enumerate() {
-        if t.span.end.line() == location.line() && t.span.end.column() > location.column() {
+        if t.span.end().line() == line && t.span.end().column() > column {
             //file_dbg("get_token_span_end", &token.span.end.line.to_string());
             //file_dbg("get_token_location_end", &location.line.to_string());
             file_dbg("get_token_t_value", &t.value.to_string());
 
             token = match t.value {
                 language::Token::Ident(_, _) => {
-                    if language::Token::ColonColon == tokens[i - 1].value {
-                        Some(format!(
-                            "{}{}{}",
-                            tokens[i - 2].value,
-                            tokens[i - 1].value,
-                            tokens[i].value
-                        ))
-                    } else if language::Token::ColonColon == tokens[i + 1].value {
-                        Some(format!(
-                            "{}{}{}",
-                            tokens[i].value,
-                            tokens[i + 1].value,
-                            tokens[i + 2].value,
-                        ))
+                    if let Some(
+                        [Spanned { value: v1, .. }, Spanned {
+                            value: Token::ColonColon,
+                            ..
+                        }, Spanned { value: v2, .. }],
+                    ) = tokens.get(i - 2..i)
+                    {
+                        Some(format!("{v1}::{v2}"))
+                    } else if let Some(
+                        [Spanned { value: v1, .. }, Spanned {
+                            value: Token::ColonColon,
+                            ..
+                        }, Spanned { value: v2, .. }],
+                    ) = tokens.get(i..i + 3)
+                    {
+                        Some(format!("{v1}::{v2}"))
                     } else {
                         None
                     }
                 }
-
-                language::Token::ColonColon => Some(format!(
-                    "{}{}{}",
-                    tokens[i - 1].value,
-                    //t.value,
-                    tokens[i].value,
-                    tokens[i + 1].value
-                )),
+                language::Token::ColonColon => {
+                    if let Some(
+                        [Spanned { value: v1, .. }, Spanned {
+                            value: Token::ColonColon,
+                            ..
+                        }, Spanned { value: v2, .. }],
+                    ) = tokens.get(i - 2..i)
+                    {
+                        Some(format!("{v1}::{v2}"))
+                    } else {
+                        None
+                    }
+                }
                 _ => None,
             };
 

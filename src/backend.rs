@@ -17,18 +17,19 @@ use halfbrown::HashMap;
 use serde_json::Value;
 use std::fs;
 use tokio::sync::Mutex;
-use tower_lsp::jsonrpc::Result;
 use tower_lsp::lsp_types::{
     CompletionItem, CompletionItemKind, CompletionOptions, CompletionParams, CompletionResponse,
     Diagnostic, DidChangeTextDocumentParams, DidCloseTextDocumentParams, DidOpenTextDocumentParams,
     DocumentHighlight, DocumentHighlightParams, Documentation, ExecuteCommandParams, Hover,
     HoverContents, HoverParams, HoverProviderCapability, InitializeParams, InitializeResult,
-    InitializedParams, InsertTextFormat, MarkupContent, MarkupKind, MessageType, Position, Range,
-    ServerCapabilities, ServerInfo, SymbolInformation, TextDocumentSyncCapability,
-    TextDocumentSyncKind, Url, WorkDoneProgressOptions, WorkspaceCapability,
-    WorkspaceFolderCapability, WorkspaceFolderCapabilityChangeNotifications, WorkspaceSymbolParams,
+    InitializedParams, InsertTextFormat, MarkupContent, MarkupKind, MessageType, OneOf, Position,
+    Range, ServerCapabilities, ServerInfo, SymbolInformation, TextDocumentSyncCapability,
+    TextDocumentSyncKind, Url, WorkDoneProgressOptions, WorkspaceFoldersServerCapabilities,
+    WorkspaceSymbolParams,
 };
+use tower_lsp::{jsonrpc::Result, lsp_types::WorkspaceServerCapabilities};
 use tower_lsp::{Client, LanguageServer};
+use tremor_script::arena::Arena;
 
 // stores the latest state of the document as it changes (on edits)
 // TODO can add more fields here based on ast parsing
@@ -40,14 +41,14 @@ struct DocumentState {
 // mapping of file uri to its server document state
 type State = HashMap<Url, DocumentState>;
 
-pub struct Backend {
+pub(crate) struct Backend {
     client: Client,
     language: Box<dyn language::Language>,
     state: Mutex<State>,
 }
 
 impl Backend {
-    pub fn new(client: Client, language: Box<dyn language::Language>) -> Self {
+    pub(crate) fn new(client: Client, language: Box<dyn language::Language>) -> Self {
         Self {
             client,
             language,
@@ -90,9 +91,7 @@ impl Backend {
                     message,
                     severity: Some(lsp_utils::to_lsp_severity(e.level())),
                     source: Some("tremor-language-server".to_string()),
-                    code: None,
-                    related_information: None,
-                    tags: None,
+                    ..Default::default()
                 });
             }
         }
@@ -106,7 +105,7 @@ impl Backend {
             character: position.character - 1,
         };
 
-        if let Some(tokens) = self.language.tokenize(uri, text) {
+        if let Ok((aid, tokens)) = self.language.tokenize(uri, text) {
             if let Some(token) = lsp_utils::get_token(&tokens, pre_position) {
                 file_dbg("get_completions_token", &token);
                 // TODO eliminate the need for this by improving get_token()
@@ -114,7 +113,7 @@ impl Backend {
 
                 if let Some(module_name) = module_parts.get(1) {
                     file_dbg("get_completions_module_name", module_name);
-                    return self
+                    let res = self
                         .language
                         .functions(uri, module_name)
                         .iter()
@@ -146,17 +145,20 @@ impl Backend {
                             };
                             CompletionItem {
                                 label: function_name.to_string(),
-                                kind: Some(CompletionItemKind::Function),
+                                kind: Some(CompletionItemKind::FUNCTION),
                                 detail,
                                 documentation,
                                 insert_text,
-                                insert_text_format: Some(InsertTextFormat::Snippet),
+                                insert_text_format: Some(InsertTextFormat::SNIPPET),
                                 ..CompletionItem::default()
                             }
                         })
                         .collect();
+                    unsafe { Arena::delte_index_this_is_really_unsafe_dont_use_it(aid).unwrap() };
+                    return res;
                 }
             }
+            unsafe { Arena::delte_index_this_is_really_unsafe_dont_use_it(aid).unwrap() }
         }
 
         vec![]
@@ -169,17 +171,20 @@ impl Backend {
         position: Position,
     ) -> Option<MarkupContent> {
         // TODO merge the repeated tokenize operation with get_completions()?
-        if let Some(tokens) = self.language.tokenize(uri, text) {
+        if let Ok((aid, tokens)) = self.language.tokenize(uri, text) {
             if let Some(token) = lsp_utils::get_token(&tokens, position) {
                 file_dbg("get_hover_content_token", &token);
                 if let Some(function_doc) = self.language.function_doc(uri, &token) {
                     file_dbg("get_hover_content_function_doc", &function_doc.description);
-                    return Some(MarkupContent {
+                    let res = Some(MarkupContent {
                         kind: MarkupKind::Markdown,
                         value: function_doc.to_string(),
                     });
+                    unsafe { Arena::delte_index_this_is_really_unsafe_dont_use_it(aid).unwrap() }
+                    return res;
                 }
             }
+            unsafe { Arena::delte_index_this_is_really_unsafe_dont_use_it(aid).unwrap() }
         }
         None
     }
@@ -194,46 +199,23 @@ impl LanguageServer for Backend {
                 version: Some(env!("CARGO_PKG_VERSION").to_string()),
             }),
             capabilities: ServerCapabilities {
-                code_action_provider: None,
-                code_lens_provider: None, /*Some(CodeLensOptions {
-                                              resolve_provider: None,
-                                          }),*/
-                color_provider: None,
                 completion_provider: Some(CompletionOptions {
-                    resolve_provider: None,
                     trigger_characters: Some(vec![":".to_string()]),
                     work_done_progress_options: WorkDoneProgressOptions::default(),
+                    ..Default::default()
                 }),
-                declaration_provider: None,
-                definition_provider: None,
-                document_formatting_provider: None,
-                document_highlight_provider: None,
-                document_link_provider: None,
-                document_on_type_formatting_provider: None,
-                document_range_formatting_provider: None,
-                document_symbol_provider: None,
-                execute_command_provider: None,
-                experimental: None,
-                selection_range_provider: None,
-                folding_range_provider: None,
                 hover_provider: Some(HoverProviderCapability::Simple(true)),
-                implementation_provider: None,
-                references_provider: None,
-                rename_provider: None,
-                signature_help_provider: None,
                 text_document_sync: Some(TextDocumentSyncCapability::Kind(
-                    TextDocumentSyncKind::Full,
+                    TextDocumentSyncKind::FULL,
                 )),
-                type_definition_provider: None,
-                workspace_symbol_provider: None,
-                workspace: Some(WorkspaceCapability {
-                    workspace_folders: Some(WorkspaceFolderCapability {
+                workspace: Some(WorkspaceServerCapabilities {
+                    workspace_folders: Some(WorkspaceFoldersServerCapabilities {
                         supported: Some(true),
-                        change_notifications: Some(
-                            WorkspaceFolderCapabilityChangeNotifications::Bool(true),
-                        ),
+                        change_notifications: Some(OneOf::Left(true)),
                     }),
+                    ..Default::default()
                 }),
+                ..Default::default()
             },
         })
     }
@@ -243,7 +225,7 @@ impl LanguageServer for Backend {
         // TODO check this from clients
         //self.client.show_message(MessageType::Info, "Initialized Trill!").await;
         self.client
-            .log_message(MessageType::Info, "Initialized Trill!")
+            .log_message(MessageType::INFO, "Initialized Trill!")
             .await;
     }
 
@@ -270,7 +252,7 @@ impl LanguageServer for Backend {
     async fn execute_command(&self, _: ExecuteCommandParams) -> Result<Option<Value>> {
         file_dbg("execute", "execute");
         self.client
-            .log_message(MessageType::Info, "executing command!")
+            .log_message(MessageType::INFO, "executing command!")
             .await;
         Ok(None)
     }
@@ -313,7 +295,6 @@ impl LanguageServer for Backend {
     }
 
     // other lsp features
-
     async fn completion(&self, params: CompletionParams) -> Result<Option<CompletionResponse>> {
         file_dbg("completion", "completion");
 
@@ -355,8 +336,7 @@ impl LanguageServer for Backend {
 }
 
 // TODO remove. just for testing right now
-pub fn file_dbg(name: &str, content: &str) {
-    use std::env::temp_dir;
+pub(crate) fn file_dbg(name: &str, content: &str) {
     use std::fs::File;
     use std::io::Write;
     use std::path::PathBuf;

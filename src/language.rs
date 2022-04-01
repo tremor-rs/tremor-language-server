@@ -18,13 +18,13 @@ mod deploy;
 mod query;
 mod script;
 
-pub use tremor_script::highlighter::ErrorLevel;
-pub use tremor_script::pos::Location;
+pub(crate) use tremor_script::highlighter::ErrorLevel;
+pub(crate) use tremor_script::pos::Location;
 
 // common language trait
-pub use prelude::{Language, Token, TokenSpan};
+pub(crate) use prelude::{Language, Token, TokenSpan};
 
-pub const LANGUAGE_NAMES: &[&str] = &[
+pub(crate) const LANGUAGE_NAMES: &[&str] = &[
     script::LANGUAGE_NAME,
     query::LANGUAGE_NAME,
     deploy::LANGUAGE_NAME,
@@ -34,9 +34,9 @@ pub const LANGUAGE_NAMES: &[&str] = &[
     deploy::LANGUAGE_NAME,
 ];
 
-pub const DEFAULT_LANGUAGE_NAME: &str = script::LANGUAGE_NAME;
+pub(crate) const DEFAULT_LANGUAGE_NAME: &str = script::LANGUAGE_NAME;
 
-pub fn lookup(language_name: &str) -> Option<Box<dyn Language>> {
+pub(crate) fn lookup(language_name: &str) -> Option<Box<dyn Language>> {
     match language_name {
         script::LANGUAGE_NAME | script::FILE_EXTENSION => {
             Some(Box::new(script::TremorScript::default()))

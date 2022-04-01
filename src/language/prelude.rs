@@ -12,16 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub use std::collections::HashMap;
-pub use std::path::Path;
-pub use tower_lsp::lsp_types::Url;
-pub use tremor_script::docs::FunctionDoc;
-pub use tremor_script::highlighter::Error;
-pub use tremor_script::registry;
+pub(crate) use tower_lsp::lsp_types::Url;
+pub(crate) use tremor_script::arena::{self, Arena};
+pub(crate) use tremor_script::deploy::Deploy;
+pub(crate) use tremor_script::docs::FunctionDoc;
+use tremor_script::errors::Result;
+pub(crate) use tremor_script::highlighter::Error;
+pub(crate) use tremor_script::registry;
 
-pub use tremor_script::lexer::{Token, TokenSpan, Tokenizer};
+pub(crate) use tremor_script::lexer::{Lexer, Token, TokenSpan};
 
-pub trait Language: Send + Sync {
+pub(crate) trait Language: Send + Sync {
     fn parse_errors(&self, uri: &Url, text: &str) -> Option<Vec<Error>>;
 
     fn functions(&self, _uri: &Url, _module_name: &str) -> Vec<String> {
@@ -32,30 +33,13 @@ pub trait Language: Send + Sync {
         None
     }
 
-    fn tokenize<'input>(&self, _uri: &Url, text: &'input str) -> Option<Vec<TokenSpan<'input>>> {
-        match Tokenizer::new(text).collect() {
-            Ok(tokens) => Some(tokens),
-            // TODO log error, or pass on as result
-            Err(_e) => None,
-        }
+    fn tokenize<'input>(
+        &self,
+        _uri: &Url,
+        text: &'input str,
+    ) -> Result<(arena::Index, Vec<TokenSpan<'input>>)> {
+        let (aid, text) = Arena::insert(text)?;
+        let v = Lexer::new(text, aid).collect::<Result<_>>()?;
+        Ok((aid, v))
     }
-}
-
-macro_rules! load_function_docs {
-    ($language_name:expr) => {{
-        let bytes = include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/function_docs.",
-            $language_name,
-            ".bin"
-        ));
-
-        match bincode::deserialize::<HashMap<String, FunctionDoc>>(bytes) {
-            Ok(function_docs) => function_docs,
-            Err(e) => {
-                eprintln!("Error: {}", e);
-                HashMap::new()
-            }
-        }
-    }};
 }

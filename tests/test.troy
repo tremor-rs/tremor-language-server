@@ -1,0 +1,11 @@
+define flow test
+flow
+  define pipeline snot
+  pipeline
+    use std::array;
+    select array::sort(event) from in into out;
+  end;
+  
+end;
+
+deploy flow test

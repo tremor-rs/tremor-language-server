@@ -38,7 +38,7 @@ impl Language for TremorQuery {
     fn parse_errors(&self, _uri: &Url, text: &str) -> Option<Vec<Error>> {
         match Query::parse_with_aid(text, &self.registry, &self.aggr_registry) {
             Ok(query) => {
-                let r = Some(query.warnings.iter().map(|w| w.into()).collect());
+                let r = Some(query.warnings.iter().map(Into::into).collect());
                 unsafe { query.consume_and_free().unwrap() };
                 r
             }

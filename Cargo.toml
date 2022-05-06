@@ -4,14 +4,7 @@ description = "Tremor Language Server (Trill)"
 edition = "2021"
 license = "Apache-2.0"
 name = "tremor-language-server"
-version = "0.11.7"
-exclude = [
-    "tremor-www-docs",
-    "!tremor-www-docs/docs/tremor-query",
-    "tremor-www-docs/docs/tremor-query/grammar",
-    "!tremor-www-docs/docs/tremor-script",
-    "tremor-www-docs/docs/tremor-script/grammar",
-]
+version = "0.12.0"
 
 [dependencies]
 
@@ -27,7 +20,7 @@ tokio = { version = "1.17", features = [
     "macros",
     "rt-multi-thread",
 ] }
-tower-lsp = "0.16"
+tower-lsp = "0.17"
 
 # tremor deps
 # FIXME!

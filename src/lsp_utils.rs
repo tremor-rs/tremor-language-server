@@ -18,6 +18,7 @@ use tremor_script::lexer::{Spanned, Token};
 
 use crate::backend::file_dbg;
 
+#[allow(clippy::cast_possible_truncation)]
 pub(crate) fn to_lsp_position(location: &language::Location) -> Position {
     // position in language server protocol is zero-based
     Position::new((location.line() - 1) as u32, (location.column() - 1) as u32)

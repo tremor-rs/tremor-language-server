@@ -91,7 +91,7 @@ impl Backend {
                     message,
                     severity: Some(lsp_utils::to_lsp_severity(e.level())),
                     source: Some("tremor-language-server".to_string()),
-                    ..Default::default()
+                    ..Diagnostic::default()
                 });
             }
         }
@@ -202,7 +202,7 @@ impl LanguageServer for Backend {
                 completion_provider: Some(CompletionOptions {
                     trigger_characters: Some(vec![":".to_string()]),
                     work_done_progress_options: WorkDoneProgressOptions::default(),
-                    ..Default::default()
+                    ..CompletionOptions::default()
                 }),
                 hover_provider: Some(HoverProviderCapability::Simple(true)),
                 text_document_sync: Some(TextDocumentSyncCapability::Kind(
@@ -213,9 +213,9 @@ impl LanguageServer for Backend {
                         supported: Some(true),
                         change_notifications: Some(OneOf::Left(true)),
                     }),
-                    ..Default::default()
+                    ..WorkspaceServerCapabilities::default()
                 }),
-                ..Default::default()
+                ..ServerCapabilities::default()
             },
         })
     }

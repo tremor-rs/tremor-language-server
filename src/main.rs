@@ -76,10 +76,7 @@ async fn main() {
         let stdout = tokio::io::stdout();
 
         let (service, messages) = LspService::new(|client| Backend::new(client, language));
-        Server::new(stdin, stdout)
-            .interleave(messages)
-            .serve(service)
-            .await;
+        Server::new(stdin, stdout, messages).serve(service).await;
     } else {
         eprintln!("Error: unknown tremor language {}", language_name);
         std::process::exit(1)

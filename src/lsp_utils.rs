@@ -17,13 +17,14 @@ use tower_lsp::lsp_types::{DiagnosticSeverity, Position};
 
 use crate::backend::file_dbg;
 
+#[allow(clippy::cast_possible_truncation)]
 pub fn to_lsp_position(location: &language::Location) -> Position {
     // position in language server protocol is zero-based
-    Position::new((location.line() - 1) as u64, (location.column() - 1) as u64)
+    Position::new((location.line() - 1) as u32, (location.column() - 1) as u32)
 }
 
 #[allow(clippy::cast_possible_truncation)]
-pub fn to_language_location(position: &Position) -> language::Location {
+pub fn to_language_location(position: Position) -> language::Location {
     // location numbers in our languages starts from one
     language::Location::new(
         (position.line + 1) as usize, // we should never have line positions > 32 bit
@@ -35,14 +36,14 @@ pub fn to_language_location(position: &Position) -> language::Location {
 
 pub fn to_lsp_severity(error_level: &language::ErrorLevel) -> DiagnosticSeverity {
     match error_level {
-        language::ErrorLevel::Error => DiagnosticSeverity::Error,
-        language::ErrorLevel::Warning => DiagnosticSeverity::Warning,
-        language::ErrorLevel::Hint => DiagnosticSeverity::Hint,
+        language::ErrorLevel::Error => DiagnosticSeverity::ERROR,
+        language::ErrorLevel::Warning => DiagnosticSeverity::WARNING,
+        language::ErrorLevel::Hint => DiagnosticSeverity::HINT,
     }
 }
 
 pub fn get_token(tokens: &[language::TokenSpan], position: Position) -> Option<String> {
-    let location = to_language_location(&position);
+    let location = to_language_location(position);
 
     //file_dbg("get_token_location_line", &location.line.to_string());
     //file_dbg("get_token_location_column", &location.column.to_string());

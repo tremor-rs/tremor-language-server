@@ -23,10 +23,10 @@ use tower_lsp::lsp_types::{
     Diagnostic, DidChangeTextDocumentParams, DidCloseTextDocumentParams, DidOpenTextDocumentParams,
     DocumentHighlight, DocumentHighlightParams, Documentation, ExecuteCommandParams, Hover,
     HoverContents, HoverParams, HoverProviderCapability, InitializeParams, InitializeResult,
-    InitializedParams, InsertTextFormat, MarkupContent, MarkupKind, MessageType, Position, Range,
-    ServerCapabilities, ServerInfo, SymbolInformation, TextDocumentSyncCapability,
-    TextDocumentSyncKind, Url, WorkDoneProgressOptions, WorkspaceCapability,
-    WorkspaceFolderCapability, WorkspaceFolderCapabilityChangeNotifications, WorkspaceSymbolParams,
+    InitializedParams, InsertTextFormat, MarkupContent, MarkupKind, MessageType, OneOf, Position,
+    Range, ServerCapabilities, ServerInfo, SymbolInformation, TextDocumentSyncCapability,
+    TextDocumentSyncKind, Url, WorkDoneProgressOptions, WorkspaceFoldersServerCapabilities,
+    WorkspaceServerCapabilities, WorkspaceSymbolParams,
 };
 use tower_lsp::{Client, LanguageServer};
 
@@ -93,6 +93,8 @@ impl Backend {
                     code: None,
                     related_information: None,
                     tags: None,
+                    code_description: None,
+                    data: None,
                 });
             }
         }
@@ -146,11 +148,11 @@ impl Backend {
                             };
                             CompletionItem {
                                 label: function_name.to_string(),
-                                kind: Some(CompletionItemKind::Function),
+                                kind: Some(CompletionItemKind::FUNCTION),
                                 detail,
                                 documentation,
                                 insert_text,
-                                insert_text_format: Some(InsertTextFormat::Snippet),
+                                insert_text_format: Some(InsertTextFormat::SNIPPET),
                                 ..CompletionItem::default()
                             }
                         })
@@ -184,7 +186,7 @@ impl Backend {
         None
     }
 }
-
+#[allow(clippy::no_effect_underscore_binding)]
 #[tower_lsp::async_trait]
 impl LanguageServer for Backend {
     async fn initialize(&self, _: InitializeParams) -> Result<InitializeResult> {
@@ -195,14 +197,13 @@ impl LanguageServer for Backend {
             }),
             capabilities: ServerCapabilities {
                 code_action_provider: None,
-                code_lens_provider: None, /*Some(CodeLensOptions {
-                                              resolve_provider: None,
-                                          }),*/
+                code_lens_provider: None,
                 color_provider: None,
                 completion_provider: Some(CompletionOptions {
                     resolve_provider: None,
                     trigger_characters: Some(vec![":".to_string()]),
                     work_done_progress_options: WorkDoneProgressOptions::default(),
+                    all_commit_characters: None,
                 }),
                 declaration_provider: None,
                 definition_provider: None,
@@ -222,18 +223,21 @@ impl LanguageServer for Backend {
                 rename_provider: None,
                 signature_help_provider: None,
                 text_document_sync: Some(TextDocumentSyncCapability::Kind(
-                    TextDocumentSyncKind::Full,
+                    TextDocumentSyncKind::FULL,
                 )),
                 type_definition_provider: None,
                 workspace_symbol_provider: None,
-                workspace: Some(WorkspaceCapability {
-                    workspace_folders: Some(WorkspaceFolderCapability {
+                workspace: Some(WorkspaceServerCapabilities {
+                    workspace_folders: Some(WorkspaceFoldersServerCapabilities {
                         supported: Some(true),
-                        change_notifications: Some(
-                            WorkspaceFolderCapabilityChangeNotifications::Bool(true),
-                        ),
+                        change_notifications: Some(OneOf::Left(true)),
                     }),
+                    file_operations: None,
                 }),
+                call_hierarchy_provider: None,
+                semantic_tokens_provider: None,
+                moniker_provider: None,
+                linked_editing_range_provider: None,
             },
         })
     }
@@ -243,7 +247,7 @@ impl LanguageServer for Backend {
         // TODO check this from clients
         //self.client.show_message(MessageType::Info, "Initialized Trill!").await;
         self.client
-            .log_message(MessageType::Info, "Initialized Trill!")
+            .log_message(MessageType::INFO, "Initialized Trill!")
             .await;
     }
 
@@ -270,7 +274,7 @@ impl LanguageServer for Backend {
     async fn execute_command(&self, _: ExecuteCommandParams) -> Result<Option<Value>> {
         file_dbg("execute", "execute");
         self.client
-            .log_message(MessageType::Info, "executing command!")
+            .log_message(MessageType::INFO, "executing command!")
             .await;
         Ok(None)
     }

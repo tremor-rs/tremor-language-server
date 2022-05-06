@@ -37,7 +37,7 @@ impl Language for TremorScript {
         // FIXME .unwrap() should we path in something here?
         match Script::parse_with_aid(text, &self.registry) {
             Ok(script) => {
-                let r = Some(script.warnings.iter().map(|w| w.into()).collect());
+                let r = Some(script.warnings.iter().map(Into::into).collect());
                 unsafe { script.consume_and_free().unwrap() };
                 r
             }

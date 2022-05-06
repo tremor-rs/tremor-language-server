@@ -38,7 +38,7 @@ impl Language for TremorDeploy {
 
         match Deploy::parse_with_aid(text, &self.registry, &self.aggr_registry) {
             Ok(deploy) => {
-                let r = Some(deploy.warnings.iter().map(|w| w.into()).collect());
+                let r = Some(deploy.warnings.iter().map(Into::into).collect());
                 unsafe { deploy.consume_and_free().unwrap() };
                 r
             }

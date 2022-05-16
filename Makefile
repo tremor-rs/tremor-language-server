@@ -1,5 +1,5 @@
 publish: 
 	cargo publish
 
-test_install: tremor-www-docs
+test_install:
 	cargo install --path .

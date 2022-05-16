@@ -1635,6 +1635,8 @@ dependencies = ["lazy_static"]
 [[package]]
 name = "tremor-common"
 version = "0.12.0-rc.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "44121867f3d532df30b873684f0473e65cfe26b85d60441b7d8f4ecd01ed6bc4"
 dependencies = [
     "async-std",
     "beef",
@@ -1647,6 +1649,8 @@ dependencies = [
 [[package]]
 name = "tremor-influx"
 version = "0.12.0-rc.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "def37c0ed2f8e98f1fcdafa33b514208c1ae3cf6799fec7cd2c03e10f133c6b8"
 dependencies = ["lexical", "value-trait"]
 
 [[package]]
@@ -1671,6 +1675,8 @@ dependencies = [
 [[package]]
 name = "tremor-script"
 version = "0.12.0-rc.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d6365b9434e3c3f704a390afa8867696e073e0e2cfc33b557b0de481cfe6b34d"
 dependencies = [
     "atty",
     "base64",
@@ -1718,6 +1724,8 @@ dependencies = [
 [[package]]
 name = "tremor-value"
 version = "0.12.0-rc.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0629562686a90b9a05bded2ae716c2b782b559ea51651cbac67c851be8e09a4e"
 dependencies = [
     "base64",
     "beef",

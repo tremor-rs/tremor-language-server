@@ -51,4 +51,4 @@ jobs:
         run: |
           gh pr create -B main --title "Release-v${{ env.NEW }}" --body "Yay release" --label "Release"
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.BOT_TOKEN }}

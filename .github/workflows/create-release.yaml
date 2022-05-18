@@ -39,9 +39,9 @@ jobs:
           draft: false
           prerelease: ${{env.RC == 'rc'}}
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.BOT_TOKEN }}
       - name: Trigger publish crates workflow
         uses: benc-uk/workflow-dispatch@v1
         with:
           workflow: Publish crates
-          token: ${{ secrets.PAT_TOKEN }}
+          token: ${{ secrets.BOT_TOKEN }}

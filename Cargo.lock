@@ -1047,18 +1047,18 @@ checksum = "830d08ce1d1d941e6b30645f1a0eb5643013d835ce3779a5fc208261dbe10f55"
 
 [[package]]
 name = "lexical"
-version = "6.1.0"
+version = "6.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ccd3e434c16f0164124ade12dcdee324fcc3dafb1cad0c7f1d8c2451a1aa6886"
+checksum = "c7aefb36fd43fef7003334742cbf77b243fcd36418a1d1bdd480d613a67968f6"
 dependencies = [
  "lexical-core",
 ]
 
 [[package]]
 name = "lexical-core"
-version = "0.8.3"
+version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "92912c4af2e7d9075be3e5e3122c4d7263855fa6cce34fbece4dd08e5884624d"
+checksum = "2cde5de06e8d4c2faabc400238f9ae1c74d5412d03a7bd067645ccbc47070e46"
 dependencies = [
  "lexical-parse-float",
  "lexical-parse-integer",
@@ -1069,9 +1069,9 @@ dependencies = [
 
 [[package]]
 name = "lexical-parse-float"
-version = "0.8.3"
+version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f518eed87c3be6debe6d26b855c97358d8a11bf05acec137e5f53080f5ad2dd8"
+checksum = "683b3a5ebd0130b8fb52ba0bdc718cc56815b6a097e28ae5a6997d0ad17dc05f"
 dependencies = [
  "lexical-parse-integer",
  "lexical-util",
@@ -1080,9 +1080,9 @@ dependencies = [
 
 [[package]]
 name = "lexical-parse-integer"
-version = "0.8.3"
+version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "afc852ec67c6538bbb2b9911116a385b24510e879a69ab516e6a151b15a79168"
+checksum = "125e1f93e5003d4bd89758c2ca2771bfae13632df633cde581efe07c87d354e5"
 dependencies = [
  "lexical-util",
  "static_assertions",
@@ -1090,18 +1090,18 @@ dependencies = [
 
 [[package]]
 name = "lexical-util"
-version = "0.8.3"
+version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c72a9d52c5c4e62fa2cdc2cb6c694a39ae1382d9c2a17a466f18e272a0930eb1"
+checksum = "5255b9ff16ff898710eb9eb63cb39248ea8a5bb036bea8085b1a767ff6c4e3fc"
 dependencies = [
  "static_assertions",
 ]
 
 [[package]]
 name = "lexical-write-float"
-version = "0.8.4"
+version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8a89ec1d062e481210c309b672f73a0567b7855f21e7d2fae636df44d12e97f9"
+checksum = "accabaa1c4581f05a3923d1b4cfd124c329352288b7b9da09e766b0668116862"
 dependencies = [
  "lexical-util",
  "lexical-write-integer",
@@ -1110,9 +1110,9 @@ dependencies = [
 
 [[package]]
 name = "lexical-write-integer"
-version = "0.8.3"
+version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "094060bd2a7c2ff3a16d5304a6ae82727cb3cc9d1c70f813cc73f744c319337e"
+checksum = "e1b6f3d1f4422866b68192d62f77bc5c700bee84f3069f2469d7bc8c77852446"
 dependencies = [
  "lexical-util",
  "static_assertions",
@@ -2000,9 +2000,9 @@ dependencies = [
 
 [[package]]
 name = "tremor-common"
-version = "0.12.0-rc.8"
+version = "0.12.0-rc.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "44121867f3d532df30b873684f0473e65cfe26b85d60441b7d8f4ecd01ed6bc4"
+checksum = "3f8df44cd6955fc96fc53a86b741543975bc08b7ab1bcff1d3c43c1dd86d40a7"
 dependencies = [
  "async-std",
  "beef",
@@ -2014,9 +2014,9 @@ dependencies = [
 
 [[package]]
 name = "tremor-influx"
-version = "0.12.0-rc.8"
+version = "0.12.0-rc.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "def37c0ed2f8e98f1fcdafa33b514208c1ae3cf6799fec7cd2c03e10f133c6b8"
+checksum = "eae07e7a48aed52adf1f6c0e3e5523aa06e56eec9b068b5bfeeb2bb66c31501d"
 dependencies = [
  "lexical",
  "value-trait",
@@ -2034,7 +2034,7 @@ dependencies = [
 
 [[package]]
 name = "tremor-language-server"
-version = "0.12.0-rc.8"
+version = "0.12.0-rc.9"
 dependencies = [
  "clap 3.1.18",
  "halfbrown",
@@ -2046,9 +2046,9 @@ dependencies = [
 
 [[package]]
 name = "tremor-script"
-version = "0.12.0-rc.8"
+version = "0.12.0-rc.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d6365b9434e3c3f704a390afa8867696e073e0e2cfc33b557b0de481cfe6b34d"
+checksum = "4b4cc7ab5f151b171b7f6e8f37fc61c8e6a21dae981c2740ba21a9ab3bfa5781"
 dependencies = [
  "atty",
  "base64",
@@ -2095,9 +2095,9 @@ dependencies = [
 
 [[package]]
 name = "tremor-value"
-version = "0.12.0-rc.8"
+version = "0.12.0-rc.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0629562686a90b9a05bded2ae716c2b782b559ea51651cbac67c851be8e09a4e"
+checksum = "0d52f15e3a8d400a5b0f7a0c005fe42b157e429462743836e93c0d0d3593dbb5"
 dependencies = [
  "base64",
  "beef",

@@ -13,35 +13,38 @@
 // limitations under the License.
 
 use crate::language::prelude::*;
-use tremor_script::Script;
+use tremor_script::{
+    arena::Index,
+    errors::ErrorWithIndex,
+    module::{Id, Module},
+};
 
 pub(crate) const LANGUAGE_NAME: &str = "tremor-script";
 pub(crate) const FILE_EXTENSION: &str = "tremor";
 
 #[allow(clippy::module_name_repetitions)]
-#[derive(Debug)]
-pub(crate) struct TremorScript {
-    registry: registry::Registry,
-}
+#[derive(Debug, Default)]
+pub(crate) struct TremorScript {}
 
-impl Default for TremorScript {
-    fn default() -> Self {
-        Self {
-            registry: registry::registry(),
-        }
-    }
+fn parse_with_aid(src: &str) -> Result<(Module, Index), ErrorWithIndex> {
+    let (aid, src) = Arena::insert(src).unwrap();
+    let mut ids = Vec::new();
+    let id = Id::from(src.as_bytes());
+    Module::load(id, &mut ids, aid, src)
+        .map_err(|e| ErrorWithIndex(aid, e))
+        .map(|m| (m, aid))
 }
-
 impl Language for TremorScript {
     fn parse_errors(&self, _uri: &Url, text: &str) -> Option<Vec<Error>> {
         // FIXME .unwrap() should we path in something here?
-        match Script::parse_with_aid(text, &self.registry) {
-            Ok(script) => {
-                let r = Some(script.warnings.iter().map(Into::into).collect());
-                unsafe { script.consume_and_free().unwrap() };
-                r
+
+        match parse_with_aid(text) {
+            Ok((module, aid)) => {
+                drop(module);
+                unsafe { Arena::delte_index_this_is_really_unsafe_dont_use_it(aid).unwrap() };
+                None
             }
-            Err(tremor_script::errors::ErrorWithIndex(aid, e)) => {
+            Err(ErrorWithIndex(aid, e)) => {
                 let r = Some(vec![(&e).into()]);
                 unsafe { Arena::delte_index_this_is_really_unsafe_dont_use_it(aid).unwrap() };
                 r

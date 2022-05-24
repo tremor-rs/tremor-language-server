@@ -1,15 +1,15 @@
 # 15 seconds
-defin tumbling window `15secs`
+define window `15secs` from tumbling
  with
    interval = datetime:with_seconds(15),
 end;
 
-define tumbling window `10secs`
+define window `10secs` from tumbling
  with
    interval = datetime::with_seconds(10),
 end;
 
-define tumbling window `5secs`
+define window `5secs` from tumbling
  with
    interval = datetime::with_seconds(5),
 end;

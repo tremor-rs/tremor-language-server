@@ -39,7 +39,7 @@ nice-to-have: rename all references
 For installation:
 
 ```
-cargo install tremor-language-server
+RUSTFLAGS='-C target-cpu=native' cargo install tremor-language-server
 ```
 
 Make sure `.cargo/bin` is in your `$PATH` (or install it somewhere in your $PATH via cargo).

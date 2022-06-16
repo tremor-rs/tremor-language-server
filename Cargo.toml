@@ -21,7 +21,7 @@ tokio = { version = "1.17", features = [
 ] }
 tower-lsp = "0.17"
 
-tremor-script = { version = "0.12.1", features = [
+tremor-script = { version = "0.12.2", features = [
     "arena-delete",
     "allow-non-simd",
 ] }

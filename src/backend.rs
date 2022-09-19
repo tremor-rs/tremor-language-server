@@ -13,10 +13,10 @@
 // limitations under the License.
 
 use crate::{language, lsp_utils};
+use async_std::sync::Mutex;
 use halfbrown::HashMap;
 use serde_json::Value;
 use std::fs;
-use tokio::sync::Mutex;
 use tower_lsp::lsp_types::{
     CompletionItem, CompletionItemKind, CompletionOptions, CompletionParams, CompletionResponse,
     Diagnostic, DidChangeTextDocumentParams, DidCloseTextDocumentParams, DidOpenTextDocumentParams,

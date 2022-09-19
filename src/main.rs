@@ -23,7 +23,7 @@ use backend::Backend;
 use clap::{Arg, Command};
 use tower_lsp::{LspService, Server};
 
-#[tokio::main]
+#[async_std::main]
 async fn main() {
     backend::file_dbg("main", "main");
 
@@ -72,7 +72,7 @@ async fn main() {
     }
 
     if let Some(language) = language::lookup(language_name) {
-        let (stdin, stdout) = (tokio::io::stdin(), tokio::io::stdout());
+        let (stdin, stdout) = (async_std::io::stdin(), async_std::io::stdout());
         let (service, socket) = LspService::new(|client| Backend::new(client, language));
         Server::new(stdin, stdout, socket).serve(service).await;
     } else {

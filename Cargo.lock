@@ -47,6 +47,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "anyhow"
+version = "1.0.65"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "98161a4e3e2184da77bb14f02184cdd111e83bbbcc9979dfee3c44b9a85f5602"
+
+[[package]]
 name = "arrayvec"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -80,6 +86,22 @@ dependencies = [
  "concurrent-queue",
  "event-listener",
  "futures-core",
+]
+
+[[package]]
+name = "async-codec-lite"
+version = "0.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2527c30e3972d8ff366b353125dae828c4252a154dbe6063684f6c5e014760a3"
+dependencies = [
+ "anyhow",
+ "bytes",
+ "futures-core",
+ "futures-io",
+ "futures-sink",
+ "log",
+ "pin-project-lite",
+ "thiserror",
 ]
 
 [[package]]
@@ -141,6 +163,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "async-process"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "02111fd8655a613c25069ea89fc8d9bb89331fa77486eb3bc059ee757cfa481c"
+dependencies = [
+ "async-io",
+ "autocfg",
+ "blocking",
+ "cfg-if",
+ "event-listener",
+ "futures-lite",
+ "libc",
+ "once_cell",
+ "signal-hook",
+ "winapi",
+]
+
+[[package]]
 name = "async-std"
 version = "1.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -151,6 +191,7 @@ dependencies = [
  "async-global-executor",
  "async-io",
  "async-lock",
+ "async-process",
  "crossbeam-utils",
  "futures-channel",
  "futures-core",
@@ -1174,16 +1215,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "num_cpus"
-version = "1.13.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "19e64526ebdee182341572e50e9ad03965aa510cd94427a4549448f285e957a1"
-dependencies = [
- "hermit-abi",
- "libc",
-]
-
-[[package]]
 name = "object"
 version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1537,6 +1568,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "signal-hook"
+version = "0.3.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a253b5e89e2698464fc26b545c9edceb338e18a89effeeecfea192c3025be29d"
+dependencies = [
+ "libc",
+ "signal-hook-registry",
+]
+
+[[package]]
+name = "signal-hook-registry"
+version = "1.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e51e73328dc4ac0c7ccbda3a494dfa03df1de2f46018127f60c693f2648455b0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "simd-json"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1745,46 +1795,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 
 [[package]]
-name = "tokio"
-version = "1.21.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0020c875007ad96677dcc890298f4b942882c5d4eb7cc8f439fc3bf813dc9c95"
-dependencies = [
- "autocfg",
- "bytes",
- "memchr",
- "num_cpus",
- "once_cell",
- "pin-project-lite",
- "tokio-macros",
-]
-
-[[package]]
-name = "tokio-macros"
-version = "1.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9724f9a975fb987ef7a3cd9be0350edcbe130698af5b8f7a631e23d42d052484"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
-name = "tokio-util"
-version = "0.7.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0bb2e075f03b3d66d8d8785356224ba688d2906a371015e225beeb65ca92c740"
-dependencies = [
- "bytes",
- "futures-core",
- "futures-sink",
- "pin-project-lite",
- "tokio",
- "tracing",
-]
-
-[[package]]
 name = "tower"
 version = "0.4.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1810,6 +1820,7 @@ version = "0.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "43e094780b4447366c59f79acfd65b1375ecaa84e61dddbde1421aa506334024"
 dependencies = [
+ "async-codec-lite",
  "async-trait",
  "auto_impl",
  "bytes",
@@ -1821,8 +1832,6 @@ dependencies = [
  "memchr",
  "serde",
  "serde_json",
- "tokio",
- "tokio-util",
  "tower",
  "tower-lsp-macros",
 ]
@@ -1843,26 +1852,6 @@ name = "tower-service"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b6bc1c9ce2b5135ac7f93c72918fc37feb872bdc6a5533a8b85eb4b86bfdae52"
-
-[[package]]
-name = "tracing"
-version = "0.1.36"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2fce9567bd60a67d08a16488756721ba392f24f29006402881e43b19aac64307"
-dependencies = [
- "cfg-if",
- "pin-project-lite",
- "tracing-core",
-]
-
-[[package]]
-name = "tracing-core"
-version = "0.1.29"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5aeea4303076558a00714b823f9ad67d58a3bbda1df83d8827d21193156e22f7"
-dependencies = [
- "once_cell",
-]
 
 [[package]]
 name = "tremor-common"
@@ -1902,10 +1891,10 @@ dependencies = [
 name = "tremor-language-server"
 version = "0.13.0-rc.3"
 dependencies = [
+ "async-std",
  "clap",
  "halfbrown",
  "serde_json",
- "tokio",
  "tower-lsp",
  "tremor-script",
 ]

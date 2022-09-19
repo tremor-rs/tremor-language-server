@@ -349,3 +349,55 @@ pub(crate) fn file_dbg(name: &str, content: &str) {
     let mut output = File::create(path).unwrap();
     write!(output, "{}", content).unwrap();
 }
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+    use tower::Service;
+    use tower_lsp::jsonrpc::{Id, Request};
+    use tower_lsp::LspService;
+
+    use super::*;
+
+    const VERSION: &str = "0.13.0-rc.3";
+
+    #[async_std::test]
+    async fn backend() -> Result<()> {
+        let lang = language::lookup("tremor-deploy").unwrap();
+        let (mut service, _socket) = LspService::new(|client| Backend::new(client, lang));
+        let req = Request::build("initialize")
+            .params(json!({"capabilities":{}}))
+            .id(1)
+            .finish();
+        let res = service
+            .call(req)
+            .await
+            .expect("Expect request to be executed")
+            .expect("Expect response");
+        assert_eq!(res.id(), &Id::Number(1));
+        assert!(res.is_ok());
+        assert_eq!(
+            &json!({
+                "capabilities": {
+                    "completionProvider": {
+                        "triggerCharacters": [":"],
+                    },
+                    "textDocumentSync": 1,
+                    "workspace": {
+                        "workspaceFolders": {
+                            "changeNotifications": true,
+                            "supported": true,
+                        }
+                    },
+                    "hoverProvider": true
+                },
+                "serverInfo": {
+                    "name": "tremor-language-server",
+                    "version": VERSION
+                }
+            }),
+            res.result().unwrap()
+        );
+        Ok(())
+    }
+}

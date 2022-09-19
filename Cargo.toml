@@ -22,3 +22,7 @@ tremor-script = { version = "0.13.0-rc.3", features = [
     "arena-delete",
     "allow-non-simd",
 ] }
+
+[dev-dependencies]
+tower-test = "0.4.0"
+tower = "0.4"

@@ -20,7 +20,10 @@ mod language;
 mod lsp_utils;
 
 use backend::Backend;
-use clap::{Arg, Command};
+use clap::{
+    builder::{OsStr, PossibleValuesParser, ValueParser},
+    Arg, ArgAction, Command,
+};
 use tower_lsp::{LspService, Server};
 
 #[async_std::main]
@@ -36,8 +39,8 @@ async fn main() {
                 .help("Tremor language to support")
                 .short('l')
                 .long("language")
-                .takes_value(true)
-                .possible_values(language::LANGUAGE_NAMES)
+                .action(ArgAction::Set)
+                .value_parser(PossibleValuesParser::new(language::LANGUAGE_NAMES))
                 .default_value(language::DEFAULT_LANGUAGE_NAME),
         )
         .arg(
@@ -45,20 +48,17 @@ async fn main() {
                 .help("TREMOR_PATH to set")
                 .short('p')
                 .long("path")
-                .takes_value(true)
-                .default_value(""),
+                .action(ArgAction::Set)
+                .value_parser(ValueParser::string())
+                .default_value(OsStr::default()),
         )
         .get_matches();
 
-    let language_name = matches
-        .value_of("language")
-        // this is safe because we provide a default value for this arg above
-        .unwrap_or_else(|| unreachable!());
+    let language_name: &String = matches
+        .get_one("language")
+        .expect("a default value was set");
 
-    let path = matches
-        .value_of("path")
-        // this is safe because we provide a default value for this arg above
-        .unwrap_or_else(|| unreachable!());
+    let path: &String = matches.get_one("path").expect("a default value was set");
 
     if !path.is_empty() {
         std::env::set_var(

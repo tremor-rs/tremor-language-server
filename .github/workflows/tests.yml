@@ -16,11 +16,14 @@ jobs:
       - uses: Swatinem/rust-cache@v1
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
+      # investigating a SIGILL when building our lalrpop grammar
+      - name: check CPU
+        run: cat /proc/cpuinfo
       - name: Generate code coverage
         env:
           RUSTFLAGS: -D warnings -C target-cpu=native
           RUST_BACKTRACE: full
-        run: cargo llvm-cov --workspace --lcov --output-path lcov.txt --locked
+        run: cargo llvm-cov --verbose --workspace --lcov --output-path lcov.txt --locked
       - uses: codecov/codecov-action@v3
         with:
           files: ./lcov.txt # optional

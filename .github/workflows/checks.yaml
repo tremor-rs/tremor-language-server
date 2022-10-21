@@ -56,6 +56,9 @@ jobs:
           # this should pick up the rust-toolchain file
           profile: minimal
           components: clippy
+      # investigating a SIGILL when building our lalrpop grammar
+      - name: check CPU
+        run: cat /proc/cpuinfo
       - name: Check workflow permissions
         id: check_permissions
         uses: scherermichael-oss/action-has-permission@1.0.6

@@ -13,7 +13,12 @@ jobs:
         with:
           profile: minimal
           components: llvm-tools-preview
+      - name: extract cpuid flags
+        id: extract-cpuid-flags
+        run: echo "flags=$(grep '^flags' /proc/cpuinfo | head -n1)" >> $GITHUB_OUTPUT
       - uses: Swatinem/rust-cache@v1
+        with:
+          key: ${{steps.extract-cpuid-flags.outputs.flags }}
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
       # investigating a SIGILL when building our lalrpop grammar

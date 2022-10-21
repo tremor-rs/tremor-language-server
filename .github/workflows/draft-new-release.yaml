@@ -17,7 +17,12 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
+      - name: extract cpuid flags
+        id: extract-cpuid-flags
+        run: echo "flags=$(grep '^flags' /proc/cpuinfo | head -n1)" >> $GITHUB_OUTPUT
       - uses: Swatinem/rust-cache@v1
+        with:
+          key: ${{steps.extract-cpuid-flags.outputs.flags }}
       - name: Install cargo-edit
         uses: actions-rs/install@v0.1
         with:

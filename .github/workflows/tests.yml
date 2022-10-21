@@ -21,9 +21,6 @@ jobs:
           key: ${{steps.extract-cpuid-flags.outputs.flags }}
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
-      # investigating a SIGILL when building our lalrpop grammar
-      - name: check CPU
-        run: cat /proc/cpuinfo
       - name: Generate code coverage
         env:
           RUSTFLAGS: -D warnings -C target-cpu=native

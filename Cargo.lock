@@ -1939,9 +1939,9 @@ dependencies = [
 
 [[package]]
 name = "tremor-common"
-version = "0.13.0-rc.5"
+version = "0.13.0-rc.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cffcb616cc171912846182e81c04dbeb44a569895f2657226686a378adaaa14e"
+checksum = "a61e548c79d32d7b66bfdc176f403b91cb299995185b3b5d51dbfa1ceffe97a6"
 dependencies = [
  "async-std",
  "beef",
@@ -1953,9 +1953,9 @@ dependencies = [
 
 [[package]]
 name = "tremor-influx"
-version = "0.13.0-rc.5"
+version = "0.13.0-rc.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d5a7f1b937a929eff4905dd5f7d61e9a129334a040dd228a4ffd6c9b2a9f6e24"
+checksum = "114cec69baee3f9bd2fc1331f2387b9fbadb928300477dd146d9d1327195a6bb"
 dependencies = [
  "lexical",
  "value-trait",
@@ -1987,9 +1987,9 @@ dependencies = [
 
 [[package]]
 name = "tremor-script"
-version = "0.13.0-rc.5"
+version = "0.13.0-rc.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "63736767d82359922fdb554dcf40ecdd7d3586f57d543fd99d11fe7a09fa5e90"
+checksum = "01ec8c4567c47fc0cc12647d910d1521f83a020a0af86cb2f342c6426c50f8a4"
 dependencies = [
  "atty",
  "base64",
@@ -2036,9 +2036,9 @@ dependencies = [
 
 [[package]]
 name = "tremor-value"
-version = "0.13.0-rc.5"
+version = "0.13.0-rc.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7bfcdd33ebd992fb6b5e48bb8dd70f59a8e999d8b227572b35a73b3da26a5f7a"
+checksum = "2666dde1370354af563df5a594a72e1ea41bcacad938762b786c33296f2b23f1"
 dependencies = [
  "base64",
  "beef",

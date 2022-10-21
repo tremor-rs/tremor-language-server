@@ -50,7 +50,7 @@ jobs:
           submodules: 'recursive'
       - name: extract cpuid flags
         id: extract-cpuid-flags
-        run: echo "flags=$(grep '^flags' /proc/cpuinfo | head -n1)" >> $GITHUB_OUTPUT
+        run: echo "flags=$(grep '^flags' /proc/cpuinfo | head -n1 | shasum)" >> $GITHUB_OUTPUT
       - uses: Swatinem/rust-cache@v2
         with:
           key: ${{steps.extract-cpuid-flags.outputs.flags }}

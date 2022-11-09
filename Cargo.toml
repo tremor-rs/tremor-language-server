@@ -4,7 +4,7 @@ description = "Tremor Language Server (Trill)"
 edition = "2021"
 license = "Apache-2.0"
 name = "tremor-language-server"
-version = "0.13.0-rc.6"
+version = "0.13.0-rc.8"
 
 [dependencies]
 
@@ -18,7 +18,7 @@ tower-lsp = { version = "0.17", default-features = false, features = [
     "runtime-agnostic",
 ] }
 
-tremor-script = { version = "0.13.0-rc.6", features = [
+tremor-script = { version = "0.13.0-rc.8", features = [
     "arena-delete",
     "allow-non-simd",
 ] }

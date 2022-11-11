@@ -407,6 +407,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "chrono-tz"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a87b30366b6766751277791b473b674f3bf7fb75696841c784a3eb7e7fbf44ee"
+dependencies = [
+ "chrono",
+ "chrono-tz-build",
+ "phf",
+]
+
+[[package]]
+name = "chrono-tz-build"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d9998fb9f7e9b2111641485bf8beb32f92945f97f92a3d061f744cfef335f751"
+dependencies = [
+ "parse-zoneinfo",
+ "phf",
+ "phf_codegen",
+]
+
+[[package]]
 name = "cidr-utils"
 version = "0.5.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -597,9 +619,9 @@ dependencies = [
 
 [[package]]
 name = "dissect"
-version = "0.4.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8206db2fa52462c7ad6f63c57764a1d22e780c3aaad2ecee15b51c6673d2b625"
+checksum = "87db6b38290fce5fcf39a92b2b15f066d16d6bf1f19f42c59bda83c9b75b5e25"
 dependencies = [
  "halfbrown",
  "simd-json",
@@ -1306,6 +1328,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "parse-zoneinfo"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c705f256449c60da65e11ff6626e0c16a0a0b96aaa348de61376b249bc340f41"
+dependencies = [
+ "regex",
+]
+
+[[package]]
 name = "percent-encoding"
 version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1322,10 +1353,48 @@ dependencies = [
 ]
 
 [[package]]
+name = "phf"
+version = "0.11.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "928c6535de93548188ef63bb7c4036bd415cd8f36ad25af44b9789b2ee72a48c"
+dependencies = [
+ "phf_shared 0.11.1",
+]
+
+[[package]]
+name = "phf_codegen"
+version = "0.11.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a56ac890c5e3ca598bbdeaa99964edb5b0258a583a9eb6ef4e89fc85d9224770"
+dependencies = [
+ "phf_generator",
+ "phf_shared 0.11.1",
+]
+
+[[package]]
+name = "phf_generator"
+version = "0.11.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b1181c94580fa345f50f19d738aaa39c0ed30a600d95cb2d3e23f94266f14fbf"
+dependencies = [
+ "phf_shared 0.11.1",
+ "rand",
+]
+
+[[package]]
 name = "phf_shared"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b6796ad771acdc0123d2a88dc428b5e38ef24456743ddb1744ed628f9815c096"
+dependencies = [
+ "siphasher",
+]
+
+[[package]]
+name = "phf_shared"
+version = "0.11.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e1fb5f6f826b772a8d4c0394209441e7d37cbbb967ae9c7e0e8134365c9ee676"
 dependencies = [
  "siphasher",
 ]
@@ -1607,11 +1676,12 @@ dependencies = [
 
 [[package]]
 name = "simd-json"
-version = "0.6.0"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9bd78b840b9de64fa3f7d72909b76343849f68e8c3d32608db8d38e4e5481f84"
+checksum = "8e3375b6c3d8c048ba09c8b4b6c3f1d3f35e06b71db07d231c323943a949e1b8"
 dependencies = [
  "halfbrown",
+ "lexical-core",
  "serde",
  "serde_json",
  "simdutf8",
@@ -1620,9 +1690,9 @@ dependencies = [
 
 [[package]]
 name = "simd-json-derive"
-version = "0.6.3"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "de454f4996c6ab2e8d9cfdc4cb937908c22faaed1929a425399ba3da1745c165"
+checksum = "e436a97551c1fcaf32577f3e0ce4fe09ca555ad85bd21e1d3bdab4dfc21fea19"
 dependencies = [
  "chrono",
  "itoa",
@@ -1634,9 +1704,9 @@ dependencies = [
 
 [[package]]
 name = "simd-json-derive-int"
-version = "0.6.3"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "03c7f247b265426bf17854724a92608580e16f065f23b2f776fa794598737d08"
+checksum = "c399b07ea91f9e228c7910c56b2be63115b0a4256a68f5a321fcce83bbcbba89"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1702,7 +1772,7 @@ dependencies = [
  "new_debug_unreachable",
  "once_cell",
  "parking_lot",
- "phf_shared",
+ "phf_shared 0.10.0",
  "precomputed-hash",
 ]
 
@@ -1939,9 +2009,9 @@ dependencies = [
 
 [[package]]
 name = "tremor-common"
-version = "0.13.0-rc.8"
+version = "0.13.0-rc.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fbd193bdf2a3f6c3164aba06ef7c9e0bb04657c69d46019b2ad6b9897f00ba57"
+checksum = "cb3c2d5027696ed3471db78059eba98f52c6cf0df2745200a80fe55c2ae7c286"
 dependencies = [
  "async-std",
  "beef",
@@ -1953,9 +2023,9 @@ dependencies = [
 
 [[package]]
 name = "tremor-influx"
-version = "0.13.0-rc.8"
+version = "0.13.0-rc.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "855c92e7db28dd7afb1646be70560502562b960f161a6da38879d4c93df9599c"
+checksum = "668c024801d844ed8b0174f32059f5a90100072fb172125e05bba3bca8da69c1"
 dependencies = [
  "lexical",
  "value-trait",
@@ -1963,9 +2033,9 @@ dependencies = [
 
 [[package]]
 name = "tremor-kv"
-version = "0.4.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "535c2d18c41214dd8e49549cb5e8399dd275b426cfe543a9e948b6dd9e725d7c"
+checksum = "abdf0a98b2e69a52e5f3a516ae0faab3d222a0b0f4e6e34ad6e3b764e1b3a1ed"
 dependencies = [
  "serde",
  "simd-json",
@@ -1973,7 +2043,7 @@ dependencies = [
 
 [[package]]
 name = "tremor-language-server"
-version = "0.13.0-rc.8"
+version = "0.13.0-rc.9"
 dependencies = [
  "async-std",
  "clap",
@@ -1987,15 +2057,16 @@ dependencies = [
 
 [[package]]
 name = "tremor-script"
-version = "0.13.0-rc.8"
+version = "0.13.0-rc.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ef964614ed0e1c229d4672faeb00d9df7fef7996bbeca95e4847c3e1d2b9b4e0"
+checksum = "e0b5e83c78cb760e35d9d2aab7ccb1ee2d0785a6c98c137cf6325abff4243bf6"
 dependencies = [
  "atty",
  "base64",
  "beef",
  "byteorder",
  "chrono",
+ "chrono-tz",
  "cidr-utils",
  "codespan",
  "dissect",
@@ -2036,9 +2107,9 @@ dependencies = [
 
 [[package]]
 name = "tremor-value"
-version = "0.13.0-rc.8"
+version = "0.13.0-rc.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7dd5b124029322700753c3be3b85871f0b15bd20f1f1ba3947f6de2adbd59cd9"
+checksum = "f2ba641c12fd101b49d71bed6a009e2b878413ccde4211f4844e3999c640ec0c"
 dependencies = [
  "base64",
  "beef",
@@ -2118,9 +2189,9 @@ dependencies = [
 
 [[package]]
 name = "value-trait"
-version = "0.4.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c0a635407649b66e125e4d2ffd208153210179f8c7c8b71c030aa2ad3eeb4c8f"
+checksum = "995de1aa349a0dc50f4aa40870dce12961a30229027230bad09acd2843edbe9e"
 dependencies = [
  "float-cmp",
  "halfbrown",

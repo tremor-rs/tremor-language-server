@@ -227,6 +227,7 @@ impl LanguageServer for Backend {
 
     async fn initialized(&self, _: InitializedParams) {
         file_dbg("initialized", "initialized");
+
         // TODO check this from clients
         //self.client.show_message(MessageType::Info, "Initialized Trill!").await;
         self.client
@@ -357,6 +358,7 @@ pub(crate) fn file_dbg(name: &str, content: &str) {
 
 #[cfg(test)]
 mod tests {
+    use async_std::prelude::{FutureExt, StreamExt};
     use serde_json::json;
     use tower::Service;
     use tower_lsp::jsonrpc::{Id, Request};
@@ -404,5 +406,77 @@ mod tests {
             res.result().unwrap()
         );
         Ok(())
+    }
+
+    #[async_std::test]
+    async fn warning_class() {
+        tracing_subscriber::fmt::init();
+
+        let lang = language::lookup("tremor-deploy").unwrap();
+        let (mut service, mut socket) = LspService::new(|client| Backend::new(client, lang));
+
+        let join_handle = async_std::task::spawn(async move {
+            while let Some(x) = socket.next().await {
+                if x.method() == "textDocument/publishDiagnostics" {
+                    let params = x.params();
+
+                    if let Some(params) = params {
+                        let message = params.get("diagnostics").unwrap().as_array().unwrap()[0]
+                            .get("message")
+                            .unwrap()
+                            .as_str()
+                            .unwrap()
+                            .to_string();
+
+                        return Some(message);
+                    }
+                }
+            }
+
+            return None;
+        });
+
+        let initialize_req = Request::build("initialize")
+            .params(json!({"capabilities":{
+            "textDocument": {
+                "synchronization": {
+                    "dynamicRegistration": true,
+                }
+            }}}))
+            .id(1)
+            .finish();
+
+        let _initialize_res = service
+            .call(initialize_req)
+            .await
+            .expect("Expect request to be executed");
+
+        let initialized_req = Request::build("initialized").params(json!({})).finish();
+        let _initialized_res = service
+            .call(initialized_req)
+            .await
+            .expect("Expect request to be executed");
+
+        let req = Request::build("textDocument/didOpen")
+            .params(json!({"textDocument": {
+                "uri": format!("file://{}/{}", env!("CARGO_MANIFEST_DIR"), "tests/warning_class.tremor"),
+                "languageId": "tremor-deploy",
+                "version": 1,
+                "text": ""
+            }}))
+            .finish();
+        let _res = service
+            .call(req)
+            .await
+            .expect("Expect request to be executed");
+
+        let result = join_handle.timeout(std::time::Duration::from_secs(5)).await;
+
+        assert_eq!(
+            result,
+            Ok(Some(
+                "consistency: const's are canonically written in UPPER_CASE".to_string()
+            ))
+        );
     }
 }

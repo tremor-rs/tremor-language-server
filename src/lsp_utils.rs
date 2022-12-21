@@ -27,7 +27,7 @@ pub(crate) fn to_lsp_position(location: &language::Location) -> Position {
 pub(crate) fn to_lsp_severity(error_level: &language::ErrorLevel) -> DiagnosticSeverity {
     match error_level {
         language::ErrorLevel::Error => DiagnosticSeverity::ERROR,
-        language::ErrorLevel::Warning => DiagnosticSeverity::WARNING,
+        language::ErrorLevel::Warning(_) => DiagnosticSeverity::WARNING,
         language::ErrorLevel::Hint => DiagnosticSeverity::HINT,
     }
 }

@@ -36,14 +36,9 @@ pub(crate) fn get_token(tokens: &[language::TokenSpan], position: Position) -> O
     let line = position.line as usize;
     let column = position.character as usize;
 
-    //file_dbg("get_token_location_line", &location.line.to_string());
-    //file_dbg("get_token_location_column", &location.column.to_string());
-
     let mut token = None;
     for (i, t) in tokens.iter().enumerate() {
         if t.span.end().line() == line && t.span.end().column() > column {
-            //file_dbg("get_token_span_end", &token.span.end.line.to_string());
-            //file_dbg("get_token_location_end", &location.line.to_string());
             file_dbg("get_token_t_value", &t.value.to_string());
 
             token = match t.value {
@@ -87,6 +82,6 @@ pub(crate) fn get_token(tokens: &[language::TokenSpan], position: Position) -> O
             break;
         }
     }
-    //file_dbg("get_token_return", &token.clone().unwrap_or_default());
+
     token
 }

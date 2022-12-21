@@ -1,0 +1,11 @@
+define flow test
+flow
+    define pipeline test_pline
+    pipeline
+        define script test_scr
+        script
+            const a = "";
+        end
+    end
+
+end

@@ -2121,7 +2121,7 @@ dependencies = [
 
 [[package]]
 name = "tremor-language-server"
-version = "0.13.0-rc.10"
+version = "0.13.0-rc.11"
 dependencies = [
  "async-std",
  "clap",

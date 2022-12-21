@@ -30,6 +30,7 @@ use tower_lsp::lsp_types::{
 use tower_lsp::{jsonrpc::Result, lsp_types::WorkspaceServerCapabilities};
 use tower_lsp::{Client, LanguageServer};
 use tremor_script::arena::Arena;
+use tremor_script::highlighter::ErrorLevel;
 
 // stores the latest state of the document as it changes (on edits)
 // TODO can add more fields here based on ast parsing
@@ -84,6 +85,10 @@ impl Backend {
                 if let Some(hint) = &e.hint() {
                     // comma here splits the message into multiple lines
                     message = format!("{}, Note: {}", message, hint);
+                }
+
+                if let ErrorLevel::Warning(class) = e.level() {
+                    message = format!("{}: {}", class, message);
                 }
 
                 diagnostics.push(Diagnostic {

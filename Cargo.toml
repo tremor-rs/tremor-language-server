@@ -4,13 +4,13 @@ description = "Tremor Language Server (Trill)"
 edition = "2021"
 license = "Apache-2.0"
 name = "tremor-language-server"
-version = "0.13.0-rc.11"
+version = "0.13.0-rc.17"
 
 [dependencies]
 
-clap = "4.0"
+clap = "4.5"
 
-halfbrown = "0.1"
+halfbrown = "0.2"
 serde_json = "1.0.96"
 # this version of tokio is needed for compatibility with tower-lsp currently
 async-std = { version = "1.12", features = ["unstable", "attributes"] }
@@ -18,11 +18,11 @@ tower-lsp = { version = "0.19", default-features = false, features = [
     "runtime-agnostic",
 ] }
 
-tremor-script = { version = "0.13.0-rc.11", features = [
+tremor-script = { path = "../tremor-runtime/tremor-script", features = [
     "arena-delete",
-    "allow-non-simd",
 ] }
 tracing-subscriber="0.3.16"
+chrono = "0.4.37"
 
 [dev-dependencies]
 tower-test = "0.4.0"

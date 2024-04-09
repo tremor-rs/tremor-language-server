@@ -366,7 +366,7 @@ mod tests {
 
     use super::*;
 
-    const VERSION: &str = "0.13.0-rc.11";
+    const VERSION: &str = "0.13.0-rc.17";
 
     #[async_std::test]
     async fn backend() -> Result<()> {

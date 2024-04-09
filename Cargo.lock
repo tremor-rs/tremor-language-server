@@ -2951,7 +2951,6 @@ name = "tremor-language-server"
 version = "0.13.0-rc.17"
 dependencies = [
  "async-std",
- "chrono",
  "clap",
  "halfbrown",
  "serde_json",

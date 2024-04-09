@@ -2866,6 +2866,7 @@ dependencies = [
 [[package]]
 name = "tremor-codec"
 version = "0.13.0-rc.17"
+source = "git+https://github.com/tremor-rs/tremor-runtime?tag=v0.13.0-rc.17#8005802c75b3b6f68d2abfe32ceb41ad205c3b44"
 dependencies = [
  "apache-avro",
  "async-recursion",
@@ -2900,6 +2901,7 @@ dependencies = [
 [[package]]
 name = "tremor-common"
 version = "0.13.0-rc.17"
+source = "git+https://github.com/tremor-rs/tremor-runtime?tag=v0.13.0-rc.17#8005802c75b3b6f68d2abfe32ceb41ad205c3b44"
 dependencies = [
  "base64 0.21.7",
  "beef",
@@ -2918,6 +2920,7 @@ dependencies = [
 [[package]]
 name = "tremor-config"
 version = "0.13.0-rc.17"
+source = "git+https://github.com/tremor-rs/tremor-runtime?tag=v0.13.0-rc.17#8005802c75b3b6f68d2abfe32ceb41ad205c3b44"
 dependencies = [
  "serde",
  "simd-json",
@@ -2927,6 +2930,7 @@ dependencies = [
 [[package]]
 name = "tremor-influx"
 version = "0.13.0-rc.17"
+source = "git+https://github.com/tremor-rs/tremor-runtime?tag=v0.13.0-rc.17#8005802c75b3b6f68d2abfe32ceb41ad205c3b44"
 dependencies = [
  "lexical",
  "value-trait",
@@ -2961,6 +2965,7 @@ dependencies = [
 [[package]]
 name = "tremor-script"
 version = "0.13.0-rc.17"
+source = "git+https://github.com/tremor-rs/tremor-runtime?tag=v0.13.0-rc.17#8005802c75b3b6f68d2abfe32ceb41ad205c3b44"
 dependencies = [
  "atty",
  "beef",
@@ -3006,6 +3011,7 @@ dependencies = [
 [[package]]
 name = "tremor-value"
 version = "0.13.0-rc.17"
+source = "git+https://github.com/tremor-rs/tremor-runtime?tag=v0.13.0-rc.17#8005802c75b3b6f68d2abfe32ceb41ad205c3b44"
 dependencies = [
  "base64 0.21.7",
  "beef",

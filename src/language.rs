@@ -24,6 +24,8 @@ pub(crate) use tremor_script::pos::Location;
 // common language trait
 pub(crate) use prelude::{Language, Token, TokenSpan};
 
+use self::{deploy::TremorDeploy, query::TremorQuery, script::TremorScript};
+
 pub(crate) const LANGUAGE_NAMES: &[&str] = &[
     script::LANGUAGE_NAME,
     query::LANGUAGE_NAME,
@@ -38,15 +40,9 @@ pub(crate) const DEFAULT_LANGUAGE_NAME: &str = script::LANGUAGE_NAME;
 
 pub(crate) fn lookup(language_name: &str) -> Option<Box<dyn Language>> {
     match language_name {
-        script::LANGUAGE_NAME | script::FILE_EXTENSION => {
-            Some(Box::new(script::TremorScript::default()))
-        }
-        query::LANGUAGE_NAME | query::FILE_EXTENSION => {
-            Some(Box::new(query::TremorQuery::default()))
-        }
-        deploy::LANGUAGE_NAME | deploy::FILE_EXTENSION => {
-            Some(Box::new(deploy::TremorDeploy::default()))
-        }
+        script::LANGUAGE_NAME | script::FILE_EXTENSION => Some(Box::<TremorScript>::default()),
+        query::LANGUAGE_NAME | query::FILE_EXTENSION => Some(Box::<TremorQuery>::default()),
+        deploy::LANGUAGE_NAME | deploy::FILE_EXTENSION => Some(Box::<TremorDeploy>::default()),
         _ => None,
     }
 }

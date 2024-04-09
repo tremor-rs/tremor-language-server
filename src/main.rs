@@ -65,7 +65,7 @@ async fn main() {
             "TREMOR_PATH",
             match std::env::var("TREMOR_PATH") {
                 // append to existing path if it's already set
-                Ok(p) => format!("{}:{}", p, path),
+                Ok(p) => format!("{p}:{path}"),
                 Err(_) => path.to_string(),
             },
         );
@@ -76,7 +76,7 @@ async fn main() {
         let (service, socket) = LspService::new(|client| Backend::new(client, language));
         Server::new(stdin, stdout, socket).serve(service).await;
     } else {
-        eprintln!("Error: unknown tremor language {}", language_name);
+        eprintln!("Error: unknown tremor language {language_name}");
         std::process::exit(1)
     }
 }

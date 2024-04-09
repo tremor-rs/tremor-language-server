@@ -84,11 +84,11 @@ impl Backend {
                 let mut message = e.callout().to_string();
                 if let Some(hint) = &e.hint() {
                     // comma here splits the message into multiple lines
-                    message = format!("{}, Note: {}", message, hint);
+                    message = format!("{message}, Note: {hint}");
                 }
 
                 if let ErrorLevel::Warning(class) = e.level() {
-                    message = format!("{}: {}", class, message);
+                    message = format!("{class}: {message}");
                 }
 
                 diagnostics.push(Diagnostic {
@@ -128,7 +128,7 @@ impl Backend {
                             let mut insert_text = None;
                             if let Some(function_doc) = self
                                 .language
-                                .function_doc(uri, &format!("{}::{}", module_name, function_name))
+                                .function_doc(uri, &format!("{module_name}::{function_name}"))
                             {
                                 file_dbg("get_completions_function_doc", &function_doc.description);
                                 detail = Some(function_doc.signature.to_string());
@@ -146,7 +146,7 @@ impl Backend {
                                     .map(|(i, arg)| format!("${{{}:{}}}", i + 1, arg))
                                     .collect::<Vec<String>>()
                                     .join(", ");
-                                insert_text = Some(format!("{}({})", function_name, args_snippet));
+                                insert_text = Some(format!("{function_name}({args_snippet})"));
                             };
                             CompletionItem {
                                 label: function_name.to_string(),
@@ -350,10 +350,10 @@ pub(crate) fn file_dbg(name: &str, content: &str) {
 
     let mut path = PathBuf::new();
     path.push(temp_dir());
-    path.push(format!("tremor_{}", name));
+    path.push(format!("tremor_{name}"));
 
     let mut output = File::create(path).unwrap();
-    write!(output, "{}", content).unwrap();
+    write!(output, "{content}").unwrap();
 }
 
 #[cfg(test)]
@@ -433,7 +433,7 @@ mod tests {
                 }
             }
 
-            return None;
+            None
         });
 
         let initialize_req = Request::build("initialize")

@@ -6,28 +6,25 @@ jobs:
   tests-linux:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: 'recursive'
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          components: llvm-tools-preview
-      - name: extract cpuid flags
-        id: extract-cpuid-flags
-        run: echo "flags=$(grep '^flags' /proc/cpuinfo | head -n1 | shasum)" >> $GITHUB_OUTPUT
-      - uses: Swatinem/rust-cache@v2
-        with:
-          key: ${{steps.extract-cpuid-flags.outputs.flags }}
-      - name: Install cargo-llvm-cov
+      - name: Install deps
+        run: sudo apt-get -qy update && sudo apt-get install -y && libssl-dev libssl1.1; sudo apt-get clean
+      - name: Install llvm-tools-preview
+        run: rustup component add llvm-tools-preview
+        uses: Swatinem/rust-cache@v2
+      - name: Instasll cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
       - name: Generate code coverage
         env:
           RUSTFLAGS: -D warnings -C target-cpu=native
           RUST_BACKTRACE: full
-        run: cargo llvm-cov --verbose --workspace --lcov --output-path lcov.txt --locked
-      - uses: codecov/codecov-action@v3
-        with:
+        run: cargo llvm-cov --verbose --lcov --output-path lcov.txt --locked
+      - uses: codecov/codecov-action@v4
+        attempt_limit: 6
+        attempt_delay: 10000
+        with: |
           files: ./lcov.txt # optional
-          fail_ci_if_error: true # optional (default = false)
+          fail_ci_if_error: #{{ github.event_name == 'pull_request' }}
           verbose: true # optional (default = false)      

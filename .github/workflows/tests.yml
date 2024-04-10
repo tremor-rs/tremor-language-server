@@ -22,7 +22,7 @@ jobs:
           RUST_BACKTRACE: full
         run: cargo llvm-cov --verbose --lcov --output-path lcov.txt --locked
       - uses: codecov/codecov-action@v4
-        with: |
+        with:
           files: ./lcov.txt # optional
           fail_ci_if_error: #{{ github.event_name == 'pull_request' }}
           verbose: true # optional (default = false)      

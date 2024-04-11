@@ -21,7 +21,7 @@ jobs:
           RUSTFLAGS: -D warnings -C target-cpu=native
           RUST_BACKTRACE: full
         run: cargo llvm-cov --verbose --lcov --output-path lcov.txt --locked
-      - uses: codecov/codecov-action@v4
+      - uses: codecov/codecov-action@v4.2.0
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
